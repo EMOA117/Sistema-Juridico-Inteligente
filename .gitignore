@@ -1,0 +1,24 @@
+# Archivos temporales y locales
+tmp/
+~$*
+*.tmp
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+# JavaScript
+node_modules/
+dist/
+build/
+
+# Editores y sistema
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
