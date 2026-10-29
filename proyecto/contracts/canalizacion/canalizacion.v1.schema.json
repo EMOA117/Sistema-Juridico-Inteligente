@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Transferencia controlada ODR a judicial, versión 1",
+  "description": "El sobre contiene metadatos técnicos y solo los datos sustantivos autorizados. Nunca se serializan entidades ODR completas.",
+  "oneOf": [
+    { "$ref": "#/$defs/ordinaria" },
+    { "$ref": "#/$defs/parcial" }
+  ],
+  "$defs": {
+    "parte": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parte_id", "rol", "nombre"],
+      "properties": {
+        "parte_id": { "type": "string", "format": "uuid" },
+        "rol": { "enum": ["DEMANDANTE", "DEMANDADO"] },
+        "nombre": { "type": "string", "minLength": 1 },
+        "correo": { "type": "string", "format": "email" },
+        "domicilio_notificaciones": { "type": "string", "minLength": 1 }
+      }
+    },
+    "partes": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/$defs/parte" },
+      "allOf": [
+        { "contains": { "type": "object", "properties": { "rol": { "const": "DEMANDANTE" } }, "required": ["rol"] }, "minContains": 1, "maxContains": 1 },
+        { "contains": { "type": "object", "properties": { "rol": { "const": "DEMANDADO" } }, "required": ["rol"] }, "minContains": 1, "maxContains": 1 }
+      ]
+    },
+    "ordinaria": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "tipo", "conflicto_id", "origen", "partes", "narrativa_inicial", "materia"],
+      "properties": {
+        "version": { "const": 1 },
+        "tipo": { "const": "ORDINARIA" },
+        "conflicto_id": { "type": "string", "format": "uuid" },
+        "origen": { "enum": ["DIRECTA", "NO_ACEPTADA", "SIN_ACUERDO", "DESISTIMIENTO"] },
+        "partes": { "$ref": "#/$defs/partes" },
+        "narrativa_inicial": { "type": "string", "minLength": 1 },
+        "materia": { "enum": ["CIVIL", "FAMILIAR"] }
+      }
+    },
+    "parcial": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "tipo", "conflicto_id", "origen", "partes", "narrativa_inicial", "materia", "puntos_pendientes"],
+      "properties": {
+        "version": { "const": 1 },
+        "tipo": { "const": "ACUERDO_PARCIAL" },
+        "conflicto_id": { "type": "string", "format": "uuid" },
+        "origen": { "const": "ACUERDO_PARCIAL" },
+        "partes": { "$ref": "#/$defs/partes" },
+        "narrativa_inicial": { "type": "string", "minLength": 1 },
+        "materia": { "enum": ["CIVIL", "FAMILIAR"] },
+        "puntos_pendientes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

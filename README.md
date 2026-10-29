@@ -8,7 +8,8 @@ El proyecto propone una plataforma de apoyo para la mediación y resolución de 
 
 - [Documentación revisada](Sistema_Juridico_Inteligente_revisado.docx): versión vigente de la propuesta.
 - [Estructura del proyecto](proyecto/README.md): componentes y responsabilidades.
-- [Revisión de arquitectura](proyecto/docs/arquitectura.md): viabilidad para el MVP y decisiones pendientes.
+- [Revisión de arquitectura](proyecto/docs/arquitectura.md): viabilidad para el MVP y decisiones de diseño.
+- [Decisiones previas a la implementación](proyecto/docs/decisiones/001-estados-y-contratos.md): estados, contratos, confidencialidad y datos de demostración.
 - `Sistema_Juridico_Inteligente.docx` y `Sistema_Juridico_Inteligente.pdf`: versiones de referencia previas a la revisión.
 
-La carpeta `proyecto/` contiene por ahora la estructura inicial y la documentación técnica; todavía no incluye una aplicación ejecutable.
+La propuesta del DOCX describe la arquitectura objetivo. Las decisiones en `proyecto/docs/decisiones/` precisan cómo se implementará primero la demostración local de ESCOM con datos sintéticos. La carpeta `proyecto/` incluye ahora reglas de estado, autorización y migraciones PostgreSQL; todavía no hay una aplicación HTTP ejecutable.

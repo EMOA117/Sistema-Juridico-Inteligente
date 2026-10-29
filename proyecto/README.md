@@ -6,7 +6,7 @@ Estructura inicial basada en `Sistema_Juridico_Inteligente_revisado.docx`. Esta 
 
 | Carpeta | Responsabilidad |
 | --- | --- |
-| `apps/web` | Aplicación web única con portales para ciudadanía, mediación, judicatura y administración. |
+| `apps/web` | Aplicación web React con portales para ciudadanía, mediación, judicatura y administración. |
 | `services/core-api` | Monolito modular FastAPI: reglas de negocio, permisos, expedientes, ODR, canalización y acceso transaccional a PostgreSQL. |
 | `services/ia-service` | Servicio interno de clasificación, recomendaciones, borradores, sugerencia de turno, RAG e ingesta. No consulta PostgreSQL directamente. |
 | `contracts` | Definiciones de intercambio entre cliente, núcleo, IA y tareas; incluye los dos contratos de canalización. |
@@ -21,4 +21,4 @@ Estructura inicial basada en `Sistema_Juridico_Inteligente_revisado.docx`. Esta 
 
 La canalización es el único puente de datos de ODR a la vía judicial. El dominio judicial no lee mensajes ni notas de mediación. `core-api` controla autenticación, autorización y cambios de estado; `ia-service` entrega sugerencias sujetas a revisión humana.
 
-La revisión de viabilidad y los puntos que conviene resolver antes de implementar están en [docs/arquitectura.md](docs/arquitectura.md).
+La revisión de viabilidad y las decisiones previas a la implementación están en [docs/arquitectura.md](docs/arquitectura.md). La primera entrega es una demostración local de ESCOM con datos sintéticos.
