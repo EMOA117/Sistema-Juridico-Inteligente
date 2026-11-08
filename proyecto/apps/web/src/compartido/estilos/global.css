@@ -117,6 +117,7 @@ p { margin: 0; }
   border: 1.5px solid currentColor; border-radius: var(--radio-control);
   font-family: var(--fuente-mono); font-size: 14px; font-weight: 600;
 }
+.tarjeta > .folio, .columna > .folio { align-self: flex-start; }
 .folio::before { content: ''; width: 8px; height: 8px; background: currentColor; }
 .folio.odr { color: var(--jade); }
 .folio.odr::before { border-radius: 50%; }

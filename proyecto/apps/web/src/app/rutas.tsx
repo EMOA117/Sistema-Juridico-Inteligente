@@ -8,6 +8,8 @@ const Registro = lazy(() => import('@/portales/publico/Registro'));
 const ActivarMFA = lazy(() => import('@/portales/publico/ActivarMFA'));
 const CambiarContrasena = lazy(() => import('@/portales/publico/CambiarContrasena'));
 const Usuarios = lazy(() => import('@/portales/administracion/Usuarios'));
+const Invitacion = lazy(() => import('@/portales/publico/Invitacion'));
+const Invitar = lazy(() => import('@/portales/ciudadano/Invitar'));
 
 // Carga diferida por pantalla (RNF2.2: code-splitting).
 const MisAsuntos = lazy(() => import('@/portales/ciudadano/MisAsuntos'));
@@ -36,6 +38,7 @@ export const router = createBrowserRouter([
   { path: '/', element: <Inicio /> },
   { path: '/login', element: <Login /> },
   { path: '/registro', element: conCarga(<Registro />) },
+  { path: '/invitacion/:token', element: conCarga(<Invitacion />) },
   { path: '/mfa', element: conCarga(<ActivarMFA />) },
   { path: '/cambiar-contrasena', element: conCarga(<CambiarContrasena />) },
   {
@@ -44,6 +47,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: conCarga(<MisAsuntos />) },
       { path: 'orientacion', element: conCarga(<Orientacion />) },
+      { path: 'invitar/:conflictoId', element: conCarga(<Invitar />) },
       { path: 'negociacion/:id', element: conCarga(<SalaNegociacion />) },
       { path: 'demanda/:conflictoId', element: conCarga(<DemandaAsistida />) },
       { path: 'expediente/:id', element: conCarga(<ExpedienteCiudadano />) },

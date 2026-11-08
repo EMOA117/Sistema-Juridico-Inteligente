@@ -8,6 +8,7 @@ from compartido.bd import RolBD, transaccion
 from compartido.cifrado import cifrar, descifrar
 from compartido.errores import NoEncontrado, ReglaNegocio
 from modulos.identidad.autorizacion import Principal
+from modulos.notificaciones.servicio import notificar
 
 ACTIVOS = ("EN_NEGOCIACION", "CON_MEDIADOR")
 
@@ -72,9 +73,11 @@ def _exigir_activa(m: dict) -> None:
 
 def enviar_mensaje(p: Principal, mediacion_id: UUID, texto: str) -> None:
     with transaccion(RolBD.ODR, p.usuario_id) as c:
-        _exigir_activa(_mediacion(c, mediacion_id))
+        m = _mediacion(c, mediacion_id)
+        _exigir_activa(m)
         c.execute("INSERT INTO schema_odr.mensaje (mediacion_id, autor_id, contenido_cifrado) VALUES (%s,%s,%s)",
                   (mediacion_id, p.usuario_id, cifrar(texto, f"mensaje:{mediacion_id}")))
+        notificar(c, m["conflicto_id"], "MENSAJE_NUEVO", "mediacion", mediacion_id, excluir=p.usuario_id)
 
 
 def enviar_propuesta(p: Principal, mediacion_id: UUID, texto: str) -> None:
@@ -90,7 +93,7 @@ def enviar_propuesta(p: Principal, mediacion_id: UUID, texto: str) -> None:
 
 
 def despues_de_propuesta(c: Connection, m: dict, autor_id: UUID) -> None:
-    """Punto de extensión para notificaciones (fase 2)."""
+    notificar(c, m["conflicto_id"], "PROPUESTA_NUEVA", "mediacion", m["id"], excluir=autor_id)
 
 
 def responder_propuesta(p: Principal, propuesta_id: UUID, estado: str) -> None:
@@ -107,6 +110,7 @@ def responder_propuesta(p: Principal, propuesta_id: UUID, estado: str) -> None:
         c.execute("UPDATE schema_odr.propuesta SET estado=%s, respondida_por=%s WHERE id=%s", (estado, p.usuario_id, propuesta_id))
         registrar(c, usuario_id=p.usuario_id, entidad="propuesta", entidad_id=propuesta_id, accion=f"PROPUESTA_{estado}",
                   estado_anterior="PENDIENTE", estado_nuevo=estado)
+        notificar(c, m["conflicto_id"], f"PROPUESTA_{estado}", "mediacion", m["id"], excluir=p.usuario_id)
         if estado == "ACEPTADA" and m["estado"] == "EN_NEGOCIACION":
             c.execute("UPDATE schema_odr.mediacion SET estado='PENDIENTE_FORMALIZACION' WHERE id=%s", (m["id"],))
 
@@ -117,6 +121,7 @@ def concluir(c: Connection, actor: UUID, m: dict, resultado: str) -> None:
               (resultado, m["id"]))
     registrar(c, usuario_id=actor, entidad="mediacion", entidad_id=m["id"], accion="MEDIACION_CONCLUIDA",
               estado_anterior=m["estado"], estado_nuevo=resultado)
+    notificar(c, m["conflicto_id"], "MEDIACION_CONCLUIDA", "mediacion", m["id"], excluir=actor)
     if resultado in ("SIN_ACUERDO", "DESISTIMIENTO", "NO_ACEPTADA"):
         c.execute("UPDATE nucleo_comun.conflicto SET estado='EN_ESPERA_DECISION' WHERE id=%s", (m["conflicto_id"],))
         registrar(c, usuario_id=actor, entidad="conflicto", entidad_id=m["conflicto_id"], accion="ESPERA_DECISION",

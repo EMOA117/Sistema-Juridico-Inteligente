@@ -24,8 +24,18 @@ La documentación interactiva queda en <http://localhost:8000/docs>.
 | `canalizacion` | `app_canalizador` | `POST /conflictos/{id}/canalizar` (solo invoca `canalizar_conflicto`) |
 | `judicial` | `app_judicial` | demanda, confirmación, expediente, dictamen, corrección |
 | `administracion` | `app_admin` | turno, carga de jueces, juzgados, indicadores agregados |
+| `odr.invitaciones` | `app_odr`, `app_auth` | `POST /conflictos/{id}/mediacion` (token de 43 caracteres, solo se guarda su SHA-256), `GET /invitaciones/{token}`, `POST /invitaciones/{token}/responder` |
+| `notificaciones` | `app_nucleo` | `GET /notificaciones`, `POST /notificaciones/leidas` |
 
 Algunas funciones (`clasificador`, `generador_borrador`, `despues_de_*`) son **puntos de extensión**. Ahí se conectan las notificaciones y el servicio de IA sin cambiar las reglas del flujo.
+
+## Tareas en segundo plano
+
+```bash
+uv run python -m tareas      # desde src/: envío de avisos por correo (Mailpit) y vencimiento de invitaciones
+```
+
+Cada cambio de estado inserta un aviso `PENDIENTE` en `nucleo_comun.notificacion` dentro de la misma transacción. La tarea los envía por SMTP con reintentos (retroceso exponencial, máximo 5) y `Message-ID` estable. Los correos solo contienen folio, tipo de evento y enlace.
 
 ## Pruebas
 

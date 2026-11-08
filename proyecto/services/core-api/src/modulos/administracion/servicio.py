@@ -55,7 +55,13 @@ def asignar(p: Principal, expediente_id: UUID, juez_id: UUID) -> dict:
 
 
 def despues_de_asignar(c, expediente_id: UUID, actor: UUID) -> None:
-    """Punto de extensión (notificaciones)."""
+    from modulos.notificaciones.servicio import notificar_usuario
+    e = c.execute("SELECT juez_id, numero FROM schema_judicial.expediente WHERE id=%s", (expediente_id,)).fetchone()
+    # Administración no ve partes ni conflicto: avisa al juez; las partes reciben aviso por función definida.
+    notificar_usuario(c, e["juez_id"], "EXPEDIENTE_TURNADO", f"EXP {e['numero']}", "expediente", expediente_id)
+    c.execute("SELECT nucleo_comun.notificar(d.conflicto_id, 'EXPEDIENTE_ASIGNADO', 'expediente', %s, NULL, false)"
+              " FROM schema_judicial.expediente x JOIN schema_judicial.demanda d ON d.id = x.demanda_id WHERE x.id = %s",
+              (expediente_id, expediente_id))
 
 
 def juzgados(p: Principal) -> list[dict]:

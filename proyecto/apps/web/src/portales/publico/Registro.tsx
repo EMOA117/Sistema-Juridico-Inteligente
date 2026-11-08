@@ -22,7 +22,8 @@ export default function Registro() {
     try {
       const r = await identidad.registrar({ nombre: d.nombre, correo: d.correo, curp: d.curp.toUpperCase(), contrasena: d.contrasena });
       entrar(r.token, r.usuario);
-      navegar(params.get('volver') ?? '/ciudadano');
+      const volver = params.get('volver');
+      navegar(volver && volver.startsWith('/') && !volver.startsWith('//') ? volver : '/ciudadano');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No pudimos crear tu cuenta.');
     } finally {

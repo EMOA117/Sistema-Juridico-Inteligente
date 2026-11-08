@@ -1,6 +1,6 @@
 // Un objeto por módulo de core-api. Las rutas coinciden con los routers de FastAPI.
 import type {
-  CargaJuez, Conflicto, Demanda, Expediente, ExpedienteResumen, Indicadores, Mediacion, MediacionResumen,
+  Aviso, CargaJuez, Conflicto, Demanda, Expediente, ExpedienteResumen, Indicadores, Mediacion, MediacionResumen,
   Materia, Orientacion, Parte, RespuestaLogin, Usuario,
 } from '@/compartido/tipos';
 import { get, patch, post, put } from './api';
@@ -30,6 +30,18 @@ export const conflictos = {
   confirmar: (id: string, materia: Materia) => post(`/conflictos/${id}/confirmar`, { materia }),
   actualizarParte: (parteId: string, datos: { domicilio?: string; correo?: string }) => patch(`/conflictos/partes/${parteId}`, datos),
   canalizar: (id: string) => post<{ demanda_id: string }>(`/conflictos/${id}/canalizar`),
+  invitar: (id: string, correo: string, plazo_dias: number) =>
+    post<{ mediacion_id: string; fecha_limite: string }>(`/conflictos/${id}/mediacion`, { correo, plazo_dias }),
+};
+
+export const invitaciones = {
+  ver: (token: string) => get<{ folio: string; materia: Materia; solicitante: string; invitado: string; estado: string; fecha_limite: string }>(`/invitaciones/${token}`),
+  responder: (token: string, acepta: boolean) => post<{ mediacion_id: string }>(`/invitaciones/${token}/responder`, { acepta }),
+};
+
+export const notificaciones = {
+  bandeja: () => get<{ sin_leer: number; avisos: Aviso[] }>('/notificaciones'),
+  leidas: (ids?: string[]) => post('/notificaciones/leidas', { ids: ids ?? null }),
 };
 
 export const odr = {

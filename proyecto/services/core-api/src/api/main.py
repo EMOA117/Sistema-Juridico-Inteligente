@@ -11,10 +11,11 @@ from modulos.administracion.router import router as administracion
 from modulos.canalizacion.router import router as canalizacion
 from modulos.identidad.router import admin as personal, router as identidad
 from modulos.judicial.router import router as judicial
-from modulos.odr.router import router as odr
+from modulos.notificaciones.router import router as notificaciones
+from modulos.odr.router import publico as invitaciones, router as odr
 from modulos.orientacion.router import router as orientacion
 
-ROUTERS = [identidad, personal, orientacion, odr, canalizacion, judicial, administracion]
+ROUTERS = [identidad, personal, orientacion, odr, invitaciones, canalizacion, judicial, administracion, notificaciones]
 
 
 @asynccontextmanager

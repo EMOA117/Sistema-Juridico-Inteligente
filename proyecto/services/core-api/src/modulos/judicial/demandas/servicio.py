@@ -92,4 +92,7 @@ def confirmar(p: Principal, demanda_id: UUID, texto: str) -> dict:
 
 
 def despues_de_expediente(c, expediente_id: UUID, actor: UUID) -> None:
-    """Punto de extensión (notificaciones e indexación de anexos)."""
+    from modulos.notificaciones.servicio import notificar
+    conf = c.execute("SELECT d.conflicto_id FROM schema_judicial.expediente e JOIN schema_judicial.demanda d ON d.id=e.demanda_id"
+                     " WHERE e.id=%s", (expediente_id,)).fetchone()
+    notificar(c, conf["conflicto_id"], "EXPEDIENTE_CREADO", "expediente", expediente_id, incluir_mediador=False)

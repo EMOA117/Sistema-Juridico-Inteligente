@@ -2,7 +2,8 @@
 import { Link } from 'react-router-dom';
 import { Cargando, Estado, Folio, MensajeError, Riel, t, tonoDe } from '@/compartido/componentes';
 import { EncabezadoCiudadano } from '@/compartido/componentes/Layouts';
-import { conflictos, judicial, odr } from '@/compartido/servicios';
+import { conflictos, judicial, notificaciones, odr } from '@/compartido/servicios';
+import { destinoDeAviso } from '@/compartido/componentes/Campana';
 import { useSesion } from '@/compartido/servicios/sesion';
 import { useDatos } from '@/compartido/servicios/useDatos';
 import type { Conflicto, ExpedienteResumen, MediacionResumen } from '@/compartido/tipos';
@@ -15,8 +16,8 @@ const etapaDe: Record<string, number> = {
 export default function MisAsuntos() {
   const { usuario } = useSesion();
   const { datos, error, cargando } = useDatos(async () => {
-    const [cs, ms, es] = await Promise.all([conflictos.mios(), odr.mediaciones(), judicial.expedientes()]);
-    return { cs, ms, es };
+    const [cs, ms, es, av] = await Promise.all([conflictos.mios(), odr.mediaciones(), judicial.expedientes(), notificaciones.bandeja()]);
+    return { cs, ms, es, av: av.avisos.slice(0, 8) };
   });
 
   const nombre = usuario?.nombre.split(' ')[0] ?? '';
@@ -40,12 +41,29 @@ export default function MisAsuntos() {
         {datos && datos.cs.length === 0 && (
           <div className="tarjeta"><p>Aún no tienes asuntos. Empieza contándonos tu conflicto.</p></div>
         )}
-        <main className="columna" style={{ gap: 16 }}>
-          {datos?.cs.map((c) => (
-            <TarjetaAsunto key={c.id} c={c} mediacion={datos.ms.find((m) => m.conflicto_id === c.id)}
-              expediente={datos.es.find((e) => e.folio === c.folio)} />
-          ))}
-        </main>
+        <div className="fila">
+          <main className="columna" style={{ flex: '2 1 560px', minWidth: 0, gap: 16 }}>
+            {datos?.cs.map((c) => (
+              <TarjetaAsunto key={c.id} c={c} mediacion={datos.ms.find((m) => m.conflicto_id === c.id)}
+                expediente={datos.es.find((e) => e.folio === c.folio)} />
+            ))}
+          </main>
+          <aside className="tarjeta" aria-labelledby="h-act" style={{ flex: '1 1 300px' }}>
+            <h2 id="h-act" className="titulo-seccion">Actividad reciente</h2>
+            {datos && datos.av.length === 0 && <p className="texto-2 pequeno">Sin avisos todavía.</p>}
+            <ol className="lista-tiempo">
+              {datos?.av.map((a) => (
+                <li key={a.id}>
+                  <span className="columna" style={{ gap: 0 }}>
+                    <Link to={destinoDeAviso(a, 'CIUDADANO')} style={{ fontWeight: a.leida_en ? 400 : 700 }}>{a.texto}</Link>
+                    <span className="mono pequeno texto-2">{a.folio} · {new Date(a.creado_en).toLocaleString('es-MX')}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <p className="pequeno texto-2">También te avisamos por correo a <strong>{usuario?.correo}</strong>.</p>
+          </aside>
+        </div>
       </div>
     </div>
   );

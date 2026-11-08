@@ -32,7 +32,9 @@ export default function Login() {
       if (rol === 'CIUDADANO' && r.usuario.rol !== 'CIUDADANO') return setError('Usa el acceso institucional.');
       if (rol !== 'CIUDADANO' && r.usuario.rol === 'CIUDADANO') return setError('Usa el acceso ciudadano.');
       entrar(r.token, r.usuario);
-      navegar(r.debe_cambiar_password ? '/cambiar-contrasena' : r.requiere_alta_mfa ? '/mfa' : destinos[r.usuario.rol]);
+      const volver = params.get('volver');
+      navegar(r.debe_cambiar_password ? '/cambiar-contrasena' : r.requiere_alta_mfa ? '/mfa'
+        : volver && volver.startsWith('/') && !volver.startsWith('//') ? volver : destinos[r.usuario.rol]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No pudimos iniciar sesión.');
     } finally {

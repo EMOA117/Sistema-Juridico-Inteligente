@@ -174,3 +174,14 @@ export interface Fragmento {
   puntaje: number;
   texto: string;
 }
+
+export interface Aviso {
+  id: string;
+  tipo: string;
+  texto: string;
+  folio: string | null;
+  entidad: string;
+  entidad_id: string;
+  creado_en: string;
+  leida_en: string | null;
+}

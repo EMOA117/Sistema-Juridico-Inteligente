@@ -16,6 +16,12 @@ class Config(BaseSettings):
     llave_cifrado: str
     duracion_sesion_min: int = 15
     origen_web: str = "http://localhost:5173"
+    url_web: str = "http://localhost:5173"          # base de los enlaces en correos
+    smtp_host: str = "localhost"
+    smtp_port: int = 1025
+    remitente: str = "Plataforma Jurídica Inteligente <avisos@plataforma-juridica.test>"
+    plazo_invitacion_dias: int = 10
+    intervalo_tareas_s: int = 15
 
     def dsn(self, login: str) -> str:
         return (f"host={self.pg_host} port={self.pg_port} dbname={self.pg_db} "

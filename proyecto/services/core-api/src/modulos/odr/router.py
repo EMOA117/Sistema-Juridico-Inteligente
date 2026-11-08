@@ -5,7 +5,8 @@ from fastapi import APIRouter
 from pydantic import BaseModel, Field
 
 from compartido.seguridad.dependencias import Sesion
-from modulos.odr import servicio
+from compartido.validacion import Correo
+from modulos.odr import invitaciones, servicio
 
 router = APIRouter(prefix="/mediaciones", tags=["odr"])
 
@@ -54,3 +55,30 @@ def responder(propuesta_id: UUID, datos: Respuesta, p: Sesion):
 def terminar(mediacion_id: UUID, datos: Terminar, p: Sesion):
     servicio.terminar_por_parte(p, mediacion_id, datos.resultado)
     return {"ok": True}
+
+
+class Invitacion(BaseModel):
+    correo: Correo | None = None
+    plazo_dias: int | None = Field(default=None, ge=3, le=30)
+
+
+class RespuestaInvitacion(BaseModel):
+    acepta: bool
+
+
+publico = APIRouter(tags=["odr"])
+
+
+@publico.post("/conflictos/{conflicto_id}/mediacion", status_code=201)
+def invitar(conflicto_id: UUID, datos: Invitacion, p: Sesion):
+    return invitaciones.invitar(p, conflicto_id, datos.correo, datos.plazo_dias)
+
+
+@publico.get("/invitaciones/{token}")
+def ver_invitacion(token: str):
+    return invitaciones.ver(token)
+
+
+@publico.post("/invitaciones/{token}/responder")
+def responder_invitacion(token: str, datos: RespuestaInvitacion, p: Sesion):
+    return invitaciones.responder(p, token, datos.acepta)

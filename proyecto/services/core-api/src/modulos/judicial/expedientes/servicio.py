@@ -65,8 +65,16 @@ def dictaminar(p: Principal, expediente_id: UUID, decision: str, texto: str | No
     return {"estado": nuevo}
 
 
+def _conflicto_de(c, expediente_id: UUID) -> dict:
+    return c.execute("SELECT d.conflicto_id, c.folio, e.juez_id FROM schema_judicial.expediente e"
+                     " JOIN schema_judicial.demanda d ON d.id=e.demanda_id JOIN nucleo_comun.conflicto c ON c.id=d.conflicto_id"
+                     " WHERE e.id=%s", (expediente_id,)).fetchone()
+
+
 def despues_de_dictamen(c, expediente_id: UUID, estado: str, actor: UUID) -> None:
-    """Punto de extensión (notificaciones)."""
+    from modulos.notificaciones.servicio import notificar
+    notificar(c, _conflicto_de(c, expediente_id)["conflicto_id"], f"DICTAMEN_{estado}", "expediente", expediente_id,
+              excluir=actor, incluir_mediador=False)
 
 
 def corregir(p: Principal, expediente_id: UUID, texto: str) -> None:
@@ -74,3 +82,6 @@ def corregir(p: Principal, expediente_id: UUID, texto: str) -> None:
         c.execute("SELECT schema_judicial.reenviar_correccion(%s, %s)", (expediente_id, texto))
         registrar(c, usuario_id=p.usuario_id, entidad="expediente", entidad_id=expediente_id, accion="CORRECCION_REENVIADA",
                   estado_anterior="PREVENIDO", estado_nuevo="EN_REVISION")
+        from modulos.notificaciones.servicio import notificar_usuario
+        info = _conflicto_de(c, expediente_id)
+        notificar_usuario(c, info["juez_id"], "CORRECCION_PRESENTADA", info["folio"], "expediente", expediente_id)
