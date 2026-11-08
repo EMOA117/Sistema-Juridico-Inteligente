@@ -1,6 +1,6 @@
 # Primera iteración ODR
 
-Implementación local de demostración con datos sintéticos. Las pantallas de `feature/pantallas-base-web` se validaron (TypeScript, compilación y pruebas existentes), se actualizaron sus dependencias vulnerables y se integraron mediante merge en `main`. `feature/modulo-ODR` parte de ese merge. Los cambios son locales; publicar ramas es una operación separada.
+Implementación local de demostración con datos sintéticos. Las pantallas de `feature/pantallas-base-web` se validaron (TypeScript, compilación y pruebas existentes), se actualizaron sus dependencias vulnerables y se integraron mediante merge en `main`. `feature/modulo-ODR` parte de ese merge y mantiene la implementación ODR separada hasta su aceptación e integración final.
 
 ## Ejecutar en Windows
 
@@ -108,3 +108,23 @@ Casos automatizados: autenticación/MFA, campos adicionales rechazados, tercero 
 - `services/core-api/tests/test_odr_api.py` y `apps/web/tests/odr.spec.ts`: aceptación API y navegador.
 
 Las pantallas antiguas de ciudadanía/mediación se conservan como referencia visual; las rutas activas usan `portales/odr`. La documentación fuente es `Sistema_Juridico_Inteligente.pdf` (RF3/RF4, páginas 16–17) junto con las decisiones `001`–`003` ya adoptadas en el repositorio.
+
+## Trabajo restante y criterios de terminación
+
+Evaluación del 8 de noviembre de 2026. La versión actual demuestra el flujo ODR persistente, pero no completa las integraciones de la arquitectura objetivo. El orden siguiente es una propuesta de implementación, no una estimación de plazos.
+
+| Orden | Trabajo | Criterio de aceptación |
+| --- | --- | --- |
+| 1 | Verificación de correo y ciclo de cuenta: enlaces de un solo uso con vencimiento, recuperación de contraseña, límites de intentos y revocación de sesiones. | Una cuenta no puede asociarse a invitaciones ni consultar asuntos solo por declarar el correo de otra persona. La vinculación exige propiedad del correo verificada; recuperación y cierre de sesiones se prueban en servidor. |
+| 2 | Invitaciones y avisos externos: proveedor de correo, cola persistente con reintentos, historial de entrega y proceso programado de vencimientos. | La contraparte recibe un enlace utilizable; fallos temporales se reintentan sin duplicar efectos. Las invitaciones vencen aunque nadie abra una pantalla. Los avisos excluyen contenido de negociación. |
+| 3 | Gestión de mediadores: certificación registrada, materias, disponibilidad y reasignación controlada. | La asignación respeta elegibilidad y carga; una solicitud sin mediador disponible queda en una bandeja atendible. Toda reasignación registra actor y motivo y revisa los permisos de acceso. |
+| 4 | Asistencia inteligente: clasificación y complejidad de entrada, recuperación semántica de ejemplos mediante el servicio IA y corpus sintético autorizado. | Se muestran fuentes y límites, se registra revisión humana y se evita sugerir sin evidencia suficiente. Se evalúa calidad con casos separados del corpus y se preserva el aislamiento ODR/judicial; una caída de IA no bloquea la negociación. |
+| 5 | Formalización institucional: seleccionar e integrar el mecanismo de firma y sello de tiempo, validar certificados y conservar documento/evidencias inmutables. | Cada firma se verifica contra la misma versión y huella; faltas, expiraciones, errores o reintentos no formalizan ni cierran indebidamente. La modalidad de demostración queda diferenciada de la institucional. |
+| 6 | Operación y persistencia: despliegue reproducible, HTTPS, credenciales separadas por dominio, gestión/rotación de claves, copias/restauración, repositorio documental con retención y procesamiento de eventos pendientes. | El entorno puede instalarse y recuperarse con datos y claves; ningún dominio obtiene permisos ajenos. Los eventos se consumen sin duplicar efectos ni divulgar contenido ODR. |
+| 7 | Aceptación y entrega: automatizar pruebas en CI y ampliar recorridos de navegador y pruebas de fallo/concurrencia/accesibilidad. | Se verifican total, parcial, rechazo, vencimiento, desistimiento, sin acuerdo, mediador y canalización; se comprueban aislamiento, firmas, avisos y recuperación. Revisión del responsable funcional antes de integrar ODR en `main`. |
+
+Para cerrar el **MVP académico**, se puede mantener un proveedor de firma simulado y correo de pruebas si ese alcance se acepta expresamente y se etiqueta en todas las evidencias. La asistencia inteligente debe evaluarse con datos sintéticos; no hace falta disponer de expedientes reales para desarrollar esa integración.
+
+Para una **operación institucional**, la verificación de identidad, las firmas y la retención requieren integración y revisión con la institución destinataria. Los resultados de pruebas del prototipo no acreditan por sí mismos esa aptitud.
+
+El módulo judicial completo (demanda asistida, expediente, contestación, resoluciones y búsqueda del juez) constituye otra entrega. Para terminar ODR sí debe quedar probado el contrato de canalización y la recepción de su evento, conservando la confidencialidad de la mediación.
