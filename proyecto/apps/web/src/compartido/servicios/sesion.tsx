@@ -1,6 +1,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { Usuario } from '@/compartido/tipos';
-import { alExpirarSesion } from './api';
+import { alExpirarSesion, post } from './api';
+
+const INACTIVIDAD_MS = 15 * 60 * 1000;   // documento: sesión de tiempo limitado
+const RENOVAR_MS = 10 * 60 * 1000;
 
 interface Sesion {
   usuario: Usuario | null;
@@ -28,6 +31,32 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => alExpirarSesion(salir), []);
+
+  // Cierra la sesión tras 15 minutos sin actividad y renueva el token mientras se use la plataforma.
+  useEffect(() => {
+    if (!usuario) return;
+    let ultima = Date.now();
+    let renovado = Date.now();
+    const actividad = () => { ultima = Date.now(); };
+    const eventos = ['pointerdown', 'keydown', 'scroll'] as const;
+    eventos.forEach((e) => window.addEventListener(e, actividad, { passive: true }));
+    const reloj = window.setInterval(async () => {
+      if (Date.now() - ultima > INACTIVIDAD_MS) {
+        salir();
+        window.location.assign('/login?motivo=inactividad');
+      } else if (Date.now() - renovado > RENOVAR_MS && Date.now() - ultima < RENOVAR_MS) {
+        renovado = Date.now();
+        try {
+          const r = await post<{ token: string }>('/auth/renovar');
+          sessionStorage.setItem('token', r.token);
+        } catch { /* el siguiente 401 cerrará la sesión */ }
+      }
+    }, 30_000);
+    return () => {
+      eventos.forEach((e) => window.removeEventListener(e, actividad));
+      window.clearInterval(reloj);
+    };
+  }, [usuario]);
 
   return <Ctx.Provider value={{ usuario, entrar, salir }}>{children}</Ctx.Provider>;
 }

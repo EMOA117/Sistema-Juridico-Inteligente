@@ -35,7 +35,18 @@ def principal_actual(authorization: Annotated[str | None, Header()] = None) -> P
     return p
 
 
+def principal_sin_mfa(authorization: Annotated[str | None, Header()] = None) -> Principal:
+    """Solo para dar de alta el segundo factor o cambiar la contraseña en el primer acceso."""
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise TokenInvalido("Falta token")
+    p = cargar_principal(authorization[7:])
+    if not p.activo:
+        raise AccesoDenegado("Usuario inactivo")
+    return p
+
+
 Sesion = Annotated[Principal, Depends(principal_actual)]
+SesionSinMfa = Annotated[Principal, Depends(principal_sin_mfa)]
 
 
 def exigir_rol(p: Principal, *roles: Rol) -> None:

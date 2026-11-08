@@ -18,7 +18,7 @@ La documentación interactiva queda en <http://localhost:8000/docs>.
 
 | Módulo | Rol BD | Endpoints principales |
 | --- | --- | --- |
-| `identidad` | `app_auth` | `POST /auth/login`, `GET /auth/yo` |
+| `identidad` | `app_auth`, `app_nucleo`, `app_admin` | `POST /auth/login` (TOTP obligatorio para personal, bloqueo de 15 min tras 5 intentos), `POST /auth/registro` (CURP con dígito verificador), `POST /auth/mfa/alta`, `POST /auth/mfa/confirmar`, `POST /auth/renovar`, `POST /auth/cambiar-contrasena`, `GET/POST/PATCH /admin/usuarios` |
 | `orientacion` | `app_nucleo` | `POST /conflictos`, `PUT /conflictos/{id}/narrativa`, `POST /conflictos/{id}/confirmar` |
 | `odr` | `app_odr` | `GET /mediaciones/{id}`, mensajes y propuestas cifrados (AES-256-GCM) |
 | `canalizacion` | `app_canalizador` | `POST /conflictos/{id}/canalizar` (solo invoca `canalizar_conflicto`) |

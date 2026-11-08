@@ -8,7 +8,17 @@ import { get, patch, post, put } from './api';
 export const identidad = {
   iniciarSesion: (correo: string, contrasena: string, codigo_mfa?: string) =>
     post<RespuestaLogin>('/auth/login', { correo, contrasena, codigo_mfa: codigo_mfa || null }),
+  registrar: (datos: { nombre: string; correo: string; curp: string; contrasena: string }) =>
+    post<RespuestaLogin>('/auth/registro', datos),
   yo: () => get<Usuario>('/auth/yo'),
+  renovar: () => post<{ token: string }>('/auth/renovar'),
+  altaMfa: () => post<{ qr_svg: string; secreto: string }>('/auth/mfa/alta'),
+  confirmarMfa: (codigo: string) => post<{ token: string; usuario: Usuario }>('/auth/mfa/confirmar', { codigo }),
+  cambiarContrasena: (actual: string, nueva: string) => post('/auth/cambiar-contrasena', { actual, nueva }),
+  personal: () => get<(Usuario & { activo: boolean; mfa_habilitado: boolean })[]>('/admin/usuarios'),
+  altaPersonal: (datos: { nombre: string; correo: string; rol: string; cargo?: string }) =>
+    post<{ id: string; contrasena_temporal: string }>('/admin/usuarios', datos),
+  estadoPersonal: (id: string, activo: boolean) => patch(`/admin/usuarios/${id}`, { activo }),
 };
 
 export const conflictos = {

@@ -30,6 +30,7 @@ def totp_valido(usuario_id: UUID, secreto_cifrado: bytes | None, codigo: str | N
 
 def iniciar_sesion(correo: str, password: str, codigo_mfa: str | None) -> dict:
     correo = correo.strip().lower()
+    error: str | None = None
     with transaccion(RolBD.AUTH, None) as c:
         u = c.execute("SELECT id, nombre, correo, password_hash, activo, mfa_habilitado, mfa_secreto_cifrado,"
                       " intentos_fallidos, bloqueado_hasta, cargo, debe_cambiar_password"
@@ -42,25 +43,28 @@ def iniciar_sesion(correo: str, password: str, codigo_mfa: str | None) -> dict:
         roles = {r["rol"] for r in c.execute("SELECT rol FROM nucleo_comun.usuario_rol WHERE usuario_id=%s", (u["id"],))}
         es_personal = bool(roles - {Rol.CIUDADANO.value})
 
-        ok = verificar_password(password, u["password_hash"])
+        password_ok = verificar_password(password, u["password_hash"])
         mfa_ok = False
-        if ok and es_personal:
-            if not u["mfa_habilitado"]:
-                ok = True  # primer acceso: puede entrar solo a dar de alta su MFA (token sin mfa)
-            else:
-                mfa_ok = totp_valido(u["id"], u["mfa_secreto_cifrado"], codigo_mfa)
-                ok = mfa_ok
-        if not ok:
+        if password_ok and es_personal and u["mfa_habilitado"]:
+            mfa_ok = totp_valido(u["id"], u["mfa_secreto_cifrado"], codigo_mfa)
+            if not mfa_ok:
+                error = "Código MFA incorrecto"
+        elif not password_ok:
+            error = "Correo o contraseña incorrectos"
+        # Personal sin MFA activo: entra solo para darlo de alta (token sin mfa; el resto de la API lo rechaza).
+
+        if error:
             intentos = u["intentos_fallidos"] + 1
+            bloquear = intentos >= MAX_INTENTOS
             c.execute("UPDATE nucleo_comun.usuario SET intentos_fallidos=%s, bloqueado_hasta=%s WHERE id=%s",
-                      (0 if intentos >= MAX_INTENTOS else intentos,
-                       ahora + BLOQUEO if intentos >= MAX_INTENTOS else None, u["id"]))
-            registrar(c, usuario_id=u["id"], entidad="usuario", entidad_id=u["id"], accion="LOGIN_FALLIDO")
-            if es_personal and verificar_password(password, u["password_hash"]) and u["mfa_habilitado"]:
-                raise CredencialesInvalidas("Código MFA incorrecto")
-            raise CredencialesInvalidas("Correo o contraseña incorrectos")
-        c.execute("UPDATE nucleo_comun.usuario SET intentos_fallidos=0, bloqueado_hasta=NULL WHERE id=%s", (u["id"],))
-        registrar(c, usuario_id=u["id"], entidad="usuario", entidad_id=u["id"], accion="LOGIN_OK")
+                      (0 if bloquear else intentos, ahora + BLOQUEO if bloquear else None, u["id"]))
+            registrar(c, usuario_id=u["id"], entidad="usuario", entidad_id=u["id"],
+                      accion="BLOQUEO_TEMPORAL" if bloquear else "LOGIN_FALLIDO")
+        else:
+            c.execute("UPDATE nucleo_comun.usuario SET intentos_fallidos=0, bloqueado_hasta=NULL WHERE id=%s", (u["id"],))
+            registrar(c, usuario_id=u["id"], entidad="usuario", entidad_id=u["id"], accion="LOGIN_OK")
+    if error:  # se lanza fuera de la transacción para conservar el contador de intentos
+        raise CredencialesInvalidas(error)
 
     token = emitir_token(u["id"], clave=config().jwt_clave, mfa_verificado=mfa_ok,
                          duracion_minutos=config().duracion_sesion_min)

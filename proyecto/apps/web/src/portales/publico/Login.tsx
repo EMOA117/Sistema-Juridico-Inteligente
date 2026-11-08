@@ -1,6 +1,6 @@
 // P1 · Inicio de sesión: ciudadano (correo + contraseña) e institucional (MFA obligatorio).
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { IconoCandado, IconoFlecha, Logo } from '@/compartido/componentes';
 import { identidad } from '@/compartido/servicios';
 import { useSesion } from '@/compartido/servicios/sesion';
@@ -10,6 +10,7 @@ const destinos: Record<Rol, string> = { CIUDADANO: '/ciudadano', MEDIADOR: '/med
 
 export default function Login() {
   const { entrar } = useSesion();
+  const [params] = useSearchParams();
   const navegar = useNavigate();
   const [verContrasena, setVerContrasena] = useState(false);
   const [error, setError] = useState('');
@@ -31,7 +32,7 @@ export default function Login() {
       if (rol === 'CIUDADANO' && r.usuario.rol !== 'CIUDADANO') return setError('Usa el acceso institucional.');
       if (rol !== 'CIUDADANO' && r.usuario.rol === 'CIUDADANO') return setError('Usa el acceso ciudadano.');
       entrar(r.token, r.usuario);
-      navegar(r.requiere_alta_mfa ? '/mfa' : destinos[r.usuario.rol]);
+      navegar(r.debe_cambiar_password ? '/cambiar-contrasena' : r.requiere_alta_mfa ? '/mfa' : destinos[r.usuario.rol]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No pudimos iniciar sesión.');
     } finally {
@@ -59,13 +60,15 @@ export default function Login() {
       </aside>
 
       <main style={{ flex: '1 1 520px', padding: '48px 56px', display: 'flex', flexDirection: 'column', gap: 24, justifyContent: 'center' }}>
+        {params.get('motivo') === 'inactividad' && !error && (
+          <p role="status" className="estado pendiente" style={{ alignSelf: 'flex-start' }}>Cerramos tu sesión por inactividad.</p>
+        )}
         {error && <p role="alert" className="estado rechazada" style={{ alignSelf: 'flex-start' }}>{error}</p>}
 
         <form className="tarjeta" aria-labelledby="h-ciu" onSubmit={(e) => acceder(e, 'CIUDADANO')} noValidate>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 12 }}>
             <h2 id="h-ciu" className="titulo-serif" style={{ fontSize: 32 }}>Entra a tu cuenta</h2>
-            {/* TODO: pantalla de registro ciudadano */}
-            <span className="texto-2">¿Primera vez? <a href="#">Crea una cuenta</a></span>
+            <span className="texto-2">¿Primera vez? <Link to="/registro">Crea una cuenta</Link></span>
           </div>
           <div className="campo">
             <label htmlFor="c-mail">Correo electrónico</label>

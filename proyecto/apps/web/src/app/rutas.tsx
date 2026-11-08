@@ -4,6 +4,10 @@ import { LayoutInstitucional, RutaProtegida } from '@/compartido/componentes/Lay
 import { Cargando } from '@/compartido/componentes';
 import { useSesion } from '@/compartido/servicios/sesion';
 import Login from '@/portales/publico/Login';
+const Registro = lazy(() => import('@/portales/publico/Registro'));
+const ActivarMFA = lazy(() => import('@/portales/publico/ActivarMFA'));
+const CambiarContrasena = lazy(() => import('@/portales/publico/CambiarContrasena'));
+const Usuarios = lazy(() => import('@/portales/administracion/Usuarios'));
 
 // Carga diferida por pantalla (RNF2.2: code-splitting).
 const MisAsuntos = lazy(() => import('@/portales/ciudadano/MisAsuntos'));
@@ -31,6 +35,9 @@ function Inicio() {
 export const router = createBrowserRouter([
   { path: '/', element: <Inicio /> },
   { path: '/login', element: <Login /> },
+  { path: '/registro', element: conCarga(<Registro />) },
+  { path: '/mfa', element: conCarga(<ActivarMFA />) },
+  { path: '/cambiar-contrasena', element: conCarga(<CambiarContrasena />) },
   {
     path: '/ciudadano',
     element: <RutaProtegida rol="CIUDADANO" />,
@@ -74,10 +81,12 @@ export const router = createBrowserRouter([
       element: <LayoutInstitucional portal="Administración" enlaces={[
         { a: '/admin', texto: 'Indicadores' },
         { a: '/admin/turno', texto: 'Turno de expedientes' },
+        { a: '/admin/usuarios', texto: 'Personal' },
       ]} />,
       children: [
         { index: true, element: conCarga(<TableroIndicadores />) },
         { path: 'turno', element: conCarga(<Turno />) },
+        { path: 'usuarios', element: conCarga(<Usuarios />) },
       ],
     }],
   },

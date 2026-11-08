@@ -71,6 +71,7 @@ p { margin: 0; }
   flex: 0 0 260px; background: var(--tinta); color: var(--cal);
   border-right: 3px solid var(--laton);
   padding: 24px 16px; display: flex; flex-direction: column; gap: 24px;
+  min-height: 100vh; position: sticky; top: 0; align-self: flex-start;
 }
 .barra-lateral a { color: var(--cal); text-decoration: none; padding: 10px 12px; border-radius: var(--radio-control); display: block; font-weight: 600; }
 .barra-lateral a.activo { background: #1d2c44; box-shadow: inset 3px 0 0 var(--laton); }
@@ -175,6 +176,6 @@ p { margin: 0; }
 
 @media (max-width: 720px) {
   .encabezado, .portal-lateral > main { padding: 16px; }
-  .barra-lateral { flex-basis: 100%; border-right: 0; border-bottom: 3px solid var(--laton); }
+  .barra-lateral { flex-basis: 100%; border-right: 0; border-bottom: 3px solid var(--laton); min-height: auto; position: static; }
   .contenedor { padding: 16px; }
 }
