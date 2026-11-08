@@ -1,6 +1,6 @@
 # Interfaz web (React)
 
-Una sola SPA con los cuatro portales (ciudadanía, mediación, juez y administración), basada en el diseño **Concordia**. Hoy las pantallas usan datos sintéticos; la lógica de negocio real vive en `core-api`.
+Una sola SPA con los cuatro portales (ciudadanía, mediación, juez y administración), basada en el diseño **Concordia**. Consume la API de `core-api`; los datos son sintéticos (decisión 003).
 
 **Stack:** React 18 + TypeScript + Vite + React Router. Sin librerías de UI: los estilos están en `src/compartido/estilos/global.css`.
 
@@ -12,7 +12,7 @@ npm install
 npm run dev        # http://localhost:5173
 ```
 
-En la pantalla de inicio de sesión cualquier correo y contraseña funcionan (modo simulado). Para el acceso institucional se elige el perfil y el código MFA debe tener 6 dígitos.
+Requiere `core-api` en el puerto 8000 (ver `infrastructure/local/README.md`). Vite reenvía `/api/*` a esa API. Las cuentas demo y sus secretos TOTP están en `infrastructure/local/credenciales-demo.txt`, que se genera al sembrar los datos.
 
 ## Estructura
 
@@ -22,8 +22,7 @@ src/
   compartido/
     componentes/             Folio, Estado, CajaIA, AvisoConfidencial, Riel, layouts
     estilos/global.css       Tokens y clases del sistema Concordia
-    servicios/               Un objeto por módulo de core-api (identidad, odr, judicial…)
-    datos/mock.ts            Datos sintéticos de la demostración
+    servicios/               Un objeto por módulo de core-api (identidad, odr, judicial…) y la sesión
     tipos/                   Tipos de dominio (espejo de los enums de core-api)
   portales/
     publico/                 P1 Inicio de sesión
@@ -38,20 +37,17 @@ src/
 | `/login` | Inicio de sesión | — |
 | `/ciudadano` | Mis asuntos y notificaciones | CIUDADANO |
 | `/ciudadano/orientacion` | Asistente de orientación | CIUDADANO |
-| `/ciudadano/negociacion/:folio` | Sala de negociación | CIUDADANO |
-| `/ciudadano/demanda/:folio` | Demanda asistida | CIUDADANO |
-| `/ciudadano/convenio/:folio` | Convenio PDF y aviso por correo | CIUDADANO |
+| `/ciudadano/negociacion/:id` | Sala de negociación (id de mediación) | CIUDADANO |
+| `/ciudadano/demanda/:conflictoId` | Demanda asistida | CIUDADANO |
+| `/ciudadano/expediente/:id` | Expediente y corrección de demanda prevenida | CIUDADANO |
+| `/ciudadano/convenio/:id` | Convenio PDF y aviso por correo | CIUDADANO |
 | `/mediador` | Portal del mediador | MEDIADOR |
 | `/juez`, `/juez/busqueda` | Bandeja, dictamen y búsqueda RAG | JUEZ |
-| `/admin` | Tablero de indicadores | ADMINISTRADOR |
+| `/admin`, `/admin/turno` | Tablero de indicadores y turno de expedientes | ADMINISTRADOR |
 
-## Cómo conectar con core-api
+## Conexión con core-api
 
-1. Copia `.env.example` a `.env` y pon `VITE_USAR_MOCKS=false`.
-2. En `src/compartido/servicios/index.ts` cada función tiene un `TODO` con el endpoint esperado; reemplaza `simular(...)` por `http(...)`.
-3. Vite reenvía `/api` a `http://localhost:8000` (FastAPI) en desarrollo.
-
-Los `TODO` dentro de las pantallas marcan las acciones que hoy solo cambian el estado local (enviar propuesta, firmar dictamen, registrar conclusión, etc.).
+`src/compartido/servicios/index.ts` declara una función por endpoint. Los errores de la API se muestran con `MensajeError`; un 401 cierra la sesión.
 
 ## Reglas de interfaz a conservar
 

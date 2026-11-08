@@ -51,3 +51,29 @@ export function Riel({ etapas, actual, ruta = 'odr' }: { etapas: string[]; actua
 export function Cargando() {
   return <p className="texto-2" role="status">Cargando…</p>;
 }
+
+export function MensajeError({ children }: { children: ReactNode }) {
+  if (!children) return null;
+  return <p role="alert" className="estado rechazada" style={{ alignSelf: 'flex-start', whiteSpace: 'normal' }}>{children}</p>;
+}
+
+/** Etiquetas legibles de estados y materias del dominio. */
+export const textoEstado: Record<string, string> = {
+  CAPTURA: 'En captura', ORIENTADO: 'Orientado', EN_MEDIACION: 'En mediación', EN_ESPERA_DECISION: 'Esperando tu decisión',
+  CANALIZADO: 'En vía judicial', CONCLUIDO: 'Concluido',
+  INVITACION_ENVIADA: 'Invitación enviada', EN_NEGOCIACION: 'En negociación', CON_MEDIADOR: 'Con mediador',
+  PENDIENTE_FORMALIZACION: 'Convenio por formalizar', CONCLUIDA: 'Concluida',
+  EN_TURNO: 'En turno', EN_REVISION: 'Por revisar', PREVENIDO: 'Prevenido', ADMITIDO: 'Admitido', EN_TRAMITE: 'En trámite',
+  RESUELTO: 'Resuelto', DESECHADO: 'Desechado', CERRADO: 'Cerrado',
+  ACUERDO_TOTAL: 'Acuerdo total', ACUERDO_PARCIAL: 'Acuerdo parcial', NO_ACEPTADA: 'Invitación no aceptada',
+  SIN_ACUERDO: 'Sin acuerdo', DESISTIMIENTO: 'Desistimiento', DIRECTA: 'Directa',
+  CIVIL: 'Civil', FAMILIAR: 'Familiar',
+};
+export const t = (v: string | null | undefined) => (v ? textoEstado[v] ?? v : '—');
+
+export function tonoDe(estado: string): TonoEstado {
+  if (['CONCLUIDO', 'ACEPTADA', 'ADMITIDO', 'RESUELTO', 'CERRADO', 'ACUERDO_TOTAL'].includes(estado)) return 'aceptada';
+  if (['PREVENIDO', 'DESECHADO', 'RECHAZADA', 'SIN_ACUERDO', 'NO_ACEPTADA'].includes(estado)) return 'rechazada';
+  if (['CANALIZADO', 'EN_TURNO', 'EN_TRAMITE'].includes(estado)) return 'tramite';
+  return 'pendiente';
+}

@@ -1,45 +1,54 @@
-// Un servicio por módulo de core-api. Cada función tiene su TODO con el endpoint esperado.
-import * as mock from '@/compartido/datos/mock';
-import type { Rol, Usuario } from '@/compartido/tipos';
-import { http, simular, USAR_MOCKS } from './api';
+// Un objeto por módulo de core-api. Las rutas coinciden con los routers de FastAPI.
+import type {
+  CargaJuez, Conflicto, Demanda, Expediente, ExpedienteResumen, Indicadores, Mediacion, MediacionResumen,
+  Materia, Orientacion, Parte, RespuestaLogin, Usuario,
+} from '@/compartido/tipos';
+import { get, patch, post, put } from './api';
 
 export const identidad = {
-  // TODO: POST /auth/login  { correo, contrasena, codigo_mfa? } -> { token, usuario }
-  async iniciarSesion(correo: string, _contrasena: string, rol: Rol, _mfa?: string): Promise<Usuario> {
-    if (!USAR_MOCKS) return http<Usuario>('/auth/login', { method: 'POST', body: JSON.stringify({ correo, contrasena: _contrasena, codigo_mfa: _mfa }) });
-    const clave = { CIUDADANO: 'ciudadano', MEDIADOR: 'mediador', JUEZ: 'juez', ADMINISTRADOR: 'admin' }[rol];
-    return simular({ ...mock.usuarios[clave], correo: correo || mock.usuarios[clave].correo });
-  },
+  iniciarSesion: (correo: string, contrasena: string, codigo_mfa?: string) =>
+    post<RespuestaLogin>('/auth/login', { correo, contrasena, codigo_mfa: codigo_mfa || null }),
+  yo: () => get<Usuario>('/auth/yo'),
 };
 
-export const ciudadano = {
-  // TODO: GET /conflictos/mios
-  misAsuntos: () => (USAR_MOCKS ? simular(mock.asuntos) : http<typeof mock.asuntos>('/conflictos/mios')),
-  // TODO: GET /notificaciones
-  actividad: () => (USAR_MOCKS ? simular(mock.actividad) : http<typeof mock.actividad>('/notificaciones')),
-};
-
-export const orientacion = {
-  // TODO: POST /orientacion  -> core-api llama a ia-service/clasificacion
-  clasificar: (_narrativa: string) => (USAR_MOCKS ? simular(mock.orientacion, 800) : http<typeof mock.orientacion>('/orientacion', { method: 'POST', body: JSON.stringify({ narrativa: _narrativa }) })),
+export const conflictos = {
+  mios: () => get<Conflicto[]>('/conflictos'),
+  detalle: (id: string) => get<Conflicto & { partes: Parte[] }>(`/conflictos/${id}`),
+  crear: (solicitante: Partial<Parte> & { nombre: string; domicilio?: string }, contraparte: { nombre: string; correo?: string; domicilio?: string }) =>
+    post<{ id: string; folio: string }>('/conflictos', { solicitante, contraparte }),
+  narrativa: (id: string, narrativa: string) => put<Orientacion>(`/conflictos/${id}/narrativa`, { narrativa }),
+  confirmar: (id: string, materia: Materia) => post(`/conflictos/${id}/confirmar`, { materia }),
+  actualizarParte: (parteId: string, datos: { domicilio?: string; correo?: string }) => patch(`/conflictos/partes/${parteId}`, datos),
+  canalizar: (id: string) => post<{ demanda_id: string }>(`/conflictos/${id}/canalizar`),
 };
 
 export const odr = {
-  // TODO: GET /odr/{folio}/mensajes, /odr/{folio}/propuestas, /odr/{folio}/sugerencia
-  mensajes: () => simular(mock.mensajes),
-  propuestas: () => simular(mock.propuestas),
-  sugerencia: () => simular(mock.sugerenciaAcuerdo, 600),
-  mediaciones: () => simular(mock.mediaciones),
+  mediaciones: () => get<MediacionResumen[]>('/mediaciones'),
+  detalle: (id: string) => get<Mediacion>(`/mediaciones/${id}`),
+  mensaje: (id: string, texto: string) => post(`/mediaciones/${id}/mensajes`, { texto }),
+  propuesta: (id: string, texto: string) => post(`/mediaciones/${id}/propuestas`, { texto }),
+  responder: (propuestaId: string, estado: 'ACEPTADA' | 'RECHAZADA') =>
+    post(`/mediaciones/propuestas/${propuestaId}/responder`, { estado }),
+  terminar: (id: string, resultado: 'SIN_ACUERDO' | 'DESISTIMIENTO') => post(`/mediaciones/${id}/terminar`, { resultado }),
 };
 
 export const judicial = {
-  // TODO: GET /expedientes?juez=me
-  bandeja: () => simular(mock.expedientes),
-  // TODO: POST /busqueda  (RAG restringido al expediente)
-  buscar: (_expediente: string, _pregunta: string) => simular(mock.fragmentos, 900),
+  demandaDeConflicto: (conflictoId: string) => get<Demanda>(`/conflictos/${conflictoId}/demanda`),
+  borrador: (demandaId: string, pretension: string, tipo_juicio: string) =>
+    post<{ texto: string; origen: string; modelo?: string; latencia_ms?: number }>(`/demandas/${demandaId}/borrador`, { pretension, tipo_juicio }),
+  guardar: (demandaId: string, texto: string) => put(`/demandas/${demandaId}`, { texto }),
+  confirmar: (demandaId: string, texto: string) =>
+    post<{ expediente_id: string; numero: string }>(`/demandas/${demandaId}/confirmar`, { texto }),
+  expedientes: () => get<ExpedienteResumen[]>('/expedientes'),
+  expediente: (id: string) => get<Expediente>(`/expedientes/${id}`),
+  dictamen: (id: string, decision: 'ADMITIR' | 'PREVENIR', texto?: string) =>
+    post<{ estado: string }>(`/expedientes/${id}/dictamen`, { decision, texto }),
+  corregir: (id: string, texto: string) => post(`/expedientes/${id}/correccion`, { texto }),
 };
 
-export const analitica = {
-  // TODO: GET /analitica/indicadores
-  indicadores: () => simular(mock.indicadores),
+export const administracion = {
+  turno: () => get<{ id: string; numero: string; materia: Materia; origen: string; creado_en: string }[]>('/admin/turno'),
+  carga: () => get<CargaJuez[]>('/admin/carga-jueces'),
+  asignar: (expedienteId: string, juez_id: string) => post(`/admin/expedientes/${expedienteId}/asignar`, { juez_id }),
+  indicadores: () => get<Indicadores>('/admin/indicadores'),
 };

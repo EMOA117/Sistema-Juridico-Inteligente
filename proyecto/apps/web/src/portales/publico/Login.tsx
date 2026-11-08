@@ -12,10 +12,10 @@ export default function Login() {
   const { entrar } = useSesion();
   const navegar = useNavigate();
   const [verContrasena, setVerContrasena] = useState(false);
-  const [perfil, setPerfil] = useState<Exclude<Rol, 'CIUDADANO'>>('JUEZ');
   const [error, setError] = useState('');
   const [enviando, setEnviando] = useState(false);
 
+  // rol: 'CIUDADANO' para el acceso ciudadano; cualquier otro valor = acceso institucional.
   async function acceder(e: FormEvent<HTMLFormElement>, rol: Rol) {
     e.preventDefault();
     const datos = new FormData(e.currentTarget);
@@ -23,15 +23,17 @@ export default function Login() {
     const contrasena = String(datos.get('contrasena') ?? '');
     const mfa = String(datos.get('mfa') ?? '').replace(/\s/g, '');
     if (!correo || !contrasena) return setError('Escribe tu correo y contraseña.');
-    if (rol !== 'CIUDADANO' && !/^\d{6}$/.test(mfa)) return setError('El código MFA debe tener 6 dígitos.');
+    if (rol !== 'CIUDADANO' && mfa && !/^\d{6}$/.test(mfa)) return setError('El código MFA debe tener 6 dígitos.');
     setError('');
     setEnviando(true);
     try {
-      const usuario = await identidad.iniciarSesion(correo, contrasena, rol, mfa);
-      entrar(usuario);
-      navegar(destinos[usuario.rol]);
-    } catch {
-      setError('No pudimos iniciar sesión. Revisa tus datos.');
+      const r = await identidad.iniciarSesion(correo, contrasena, mfa);
+      if (rol === 'CIUDADANO' && r.usuario.rol !== 'CIUDADANO') return setError('Usa el acceso institucional.');
+      if (rol !== 'CIUDADANO' && r.usuario.rol === 'CIUDADANO') return setError('Usa el acceso ciudadano.');
+      entrar(r.token, r.usuario);
+      navegar(r.requiere_alta_mfa ? '/mfa' : destinos[r.usuario.rol]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No pudimos iniciar sesión.');
     } finally {
       setEnviando(false);
     }
@@ -82,19 +84,12 @@ export default function Login() {
           <span className="pequeno texto-2">Por seguridad, tu sesión se cierra tras 15 minutos sin actividad.</span>
         </form>
 
-        <form className="tarjeta suave" aria-labelledby="h-inst" onSubmit={(e) => acceder(e, perfil)} noValidate>
+        <form className="tarjeta suave" aria-labelledby="h-inst" onSubmit={(e) => acceder(e, 'JUEZ')} noValidate>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
             <h2 id="h-inst" style={{ fontSize: 17 }}>Acceso institucional</h2>
             <span className="mono pequeno texto-2" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}><IconoCandado />MFA OBLIGATORIO</span>
           </div>
-          <fieldset style={{ border: 0, padding: 0, margin: 0, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-            <legend className="solo-lector">Perfil</legend>
-            {([['JUEZ', 'Juez'], ['MEDIADOR', 'Mediador'], ['ADMINISTRADOR', 'Administrativo']] as const).map(([valor, texto]) => (
-              <label key={valor} style={{ display: 'flex', alignItems: 'center', gap: 6, minHeight: 44, fontWeight: 700 }}>
-                <input type="radio" name="perfil" checked={perfil === valor} onChange={() => setPerfil(valor)} />{texto}
-              </label>
-            ))}
-          </fieldset>
+          <p className="pequeno texto-2">Jueces, mediadores y personal administrativo. Tu perfil se toma de tu cuenta institucional.</p>
           <div className="fila">
             <div className="campo crece" style={{ minWidth: 200 }}>
               <label htmlFor="i-mail">Correo institucional</label>

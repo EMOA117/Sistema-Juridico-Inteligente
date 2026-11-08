@@ -11,6 +11,8 @@ const Orientacion = lazy(() => import('@/portales/ciudadano/Orientacion'));
 const SalaNegociacion = lazy(() => import('@/portales/ciudadano/SalaNegociacion'));
 const DemandaAsistida = lazy(() => import('@/portales/ciudadano/DemandaAsistida'));
 const Convenio = lazy(() => import('@/portales/ciudadano/Convenio'));
+const ExpedienteCiudadano = lazy(() => import('@/portales/ciudadano/ExpedienteCiudadano'));
+const Turno = lazy(() => import('@/portales/administracion/Turno'));
 const PortalMediador = lazy(() => import('@/portales/mediador/PortalMediador'));
 const BandejaJuez = lazy(() => import('@/portales/juez/BandejaJuez'));
 const BusquedaSemantica = lazy(() => import('@/portales/juez/BusquedaSemantica'));
@@ -35,9 +37,10 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: conCarga(<MisAsuntos />) },
       { path: 'orientacion', element: conCarga(<Orientacion />) },
-      { path: 'negociacion/:folio', element: conCarga(<SalaNegociacion />) },
-      { path: 'demanda/:folio', element: conCarga(<DemandaAsistida />) },
-      { path: 'convenio/:folio', element: conCarga(<Convenio />) },
+      { path: 'negociacion/:id', element: conCarga(<SalaNegociacion />) },
+      { path: 'demanda/:conflictoId', element: conCarga(<DemandaAsistida />) },
+      { path: 'expediente/:id', element: conCarga(<ExpedienteCiudadano />) },
+      { path: 'convenio/:id', element: conCarga(<Convenio />) },
     ],
   },
   {
@@ -70,8 +73,12 @@ export const router = createBrowserRouter([
     children: [{
       element: <LayoutInstitucional portal="Administración" enlaces={[
         { a: '/admin', texto: 'Indicadores' },
+        { a: '/admin/turno', texto: 'Turno de expedientes' },
       ]} />,
-      children: [{ index: true, element: conCarga(<TableroIndicadores />) }],
+      children: [
+        { index: true, element: conCarga(<TableroIndicadores />) },
+        { path: 'turno', element: conCarga(<Turno />) },
+      ],
     }],
   },
   { path: '*', element: <Navigate to="/" replace /> },
