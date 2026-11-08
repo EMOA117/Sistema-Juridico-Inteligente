@@ -26,7 +26,7 @@ La estructura de carpetas refleja límites lógicos, no implica desplegar cada m
 | --- | --- | --- |
 | Alta | PostgreSQL, MongoDB y almacenamiento de objetos no comparten una transacción. | Registrar eventos pendientes en PostgreSQL y procesarlos con reintentos e idempotencia; tratar los índices y análisis como derivados reconstruibles. |
 | Media | La infraestructura completa descrita en el documento requiere operación institucional. | Construir primero un entorno local reproducible; conservar las interfaces para una eventual instalación institucional. |
-| Resuelta | Interfaz web | Se usará **React** para los cuatro portales de `apps/web`; las vistas se diseñarán después. |
+| Resuelta | Interfaz web | Se usa **React + Vite + TypeScript** para los cuatro portales de `apps/web`; las pantallas base ya existen con datos simulados. |
 | Media | El plazo de 15 días requiere una fecha inicial comprobable y tratamiento de vencimientos. | Registrar el emplazamiento validado, calcular la fecha límite con la regla del documento y probar la tarea de vencimiento; revisar la regla procesal aplicable antes de uso real. |
 
 ## Primera secuencia de implementación sugerida
