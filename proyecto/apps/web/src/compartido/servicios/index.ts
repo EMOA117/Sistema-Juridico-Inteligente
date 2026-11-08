@@ -3,7 +3,7 @@ import type {
   Aviso, CargaJuez, Convenio, MediadorPadron, SesionMediacion, Conflicto, Demanda, Expediente, ExpedienteResumen, Indicadores, Mediacion, MediacionResumen,
   Materia, Orientacion, Parte, RespuestaLogin, Usuario,
 } from '@/compartido/tipos';
-import { get, patch, post, put } from './api';
+import { get, http, patch, post, put } from './api';
 
 export const identidad = {
   iniciarSesion: (correo: string, contrasena: string, codigo_mfa?: string) =>
@@ -95,3 +95,28 @@ export const administracion = {
     put(`/admin/mediadores/${usuarioId}`, datos),
   reasignar: (mediacionId: string, mediador_id: string) => post(`/admin/asignaciones/${mediacionId}`, { mediador_id }),
 };
+
+export interface Credenciales { contrasena: string; codigo_mfa?: string }
+
+export const firma = {
+  firmasConvenio: (mediacionId: string) =>
+    get<{ nombre: string; soy_yo: boolean; firmo: boolean; num_serie: string | null; sello_tiempo: string | null }[]>(`/mediaciones/${mediacionId}/convenio/firmas`),
+  firmarConvenio: (mediacionId: string, c: Credenciales) =>
+    post<{ formalizado: boolean; faltan?: number; hash_sha256?: string }>(`/mediaciones/${mediacionId}/convenio/firmar`, c),
+  emplazar: (expedienteId: string, fecha: string) => post<{ fecha_limite_contestacion: string }>(`/expedientes/${expedienteId}/emplazamiento`, { fecha }),
+  tramite: (expedienteId: string) => post(`/expedientes/${expedienteId}/tramite`),
+  resolucion: (expedienteId: string, datos: { tipo: 'DESECHAMIENTO' | 'SENTENCIA'; resultado: string; texto: string } & Credenciales) =>
+    post<{ estado: string; hash_sha256: string }>(`/expedientes/${expedienteId}/resolucion`, datos),
+  firmeza: (expedienteId: string, fecha: string) => post(`/expedientes/${expedienteId}/firmeza`, { fecha }),
+  verificar: (huella: string) =>
+    get<{ valido: boolean; tipo?: string; dominio?: string; referencia?: string; creado_en?: string; firmas?: number }>(`/verificar/${huella}`),
+};
+
+/** Descarga un documento oficial con la sesión actual y lo abre en una pestaña nueva. */
+export async function abrirDocumento(documentoId: string) {
+  const ventana = window.open('', '_blank');
+  const blob = await http<Blob>(`/documentos/${documentoId}`);
+  const url = URL.createObjectURL(blob);
+  if (ventana) ventana.location.href = url; else window.location.href = url;
+  setTimeout(() => URL.revokeObjectURL(url), 60_000);
+}

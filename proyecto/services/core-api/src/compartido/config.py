@@ -22,6 +22,14 @@ class Config(BaseSettings):
     remitente: str = "Plataforma Jurídica Inteligente <avisos@plataforma-juridica.test>"
     plazo_invitacion_dias: int = 10
     intervalo_tareas_s: int = 15
+    # Almacén de objetos compatible con S3 (RustFS en local) y PKI de demostración.
+    s3_url: str = "http://localhost:9000"
+    s3_access_key: str = ""
+    s3_secret_key: str = ""
+    bucket_documentos: str = "sji-documentos"     # con Object Lock (WORM)
+    bucket_trabajo: str = "sji-trabajo"           # borradores en proceso de firma
+    retencion_dias: int = 30                      # demostración; en producción la fija la política documental
+    pki_dir: str = str(Path(__file__).resolve().parents[4] / "infrastructure" / "local" / "pki")
 
     def dsn(self, login: str) -> str:
         return (f"host={self.pg_host} port={self.pg_port} dbname={self.pg_db} "

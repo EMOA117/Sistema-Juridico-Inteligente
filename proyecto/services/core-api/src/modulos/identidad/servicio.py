@@ -78,3 +78,14 @@ def perfil(token: str) -> dict:
     with transaccion(RolBD.AUTH, None) as c:
         u = c.execute("SELECT id, nombre, correo, cargo FROM nucleo_comun.usuario WHERE id=%s", (p.usuario_id,)).fetchone()
     return {**u, "id": str(u["id"]), "rol": p.rol.value, "mfa": p.mfa_verificado}
+
+
+def confirmar_identidad(usuario_id: UUID, password: str, codigo_mfa: str | None, *, exigir_mfa: bool) -> None:
+    """Reautenticación para firmar (RF4.3, RF9.5): contraseña y, para el personal, segundo factor."""
+    with transaccion(RolBD.AUTH, None) as c:
+        u = c.execute("SELECT password_hash, mfa_habilitado, mfa_secreto_cifrado FROM nucleo_comun.usuario WHERE id=%s",
+                      (usuario_id,)).fetchone()
+    if not u or not verificar_password(password, u["password_hash"]):
+        raise CredencialesInvalidas("La contraseña no es correcta; no se firmó el documento")
+    if exigir_mfa and not totp_valido(usuario_id, u["mfa_secreto_cifrado"], codigo_mfa):
+        raise CredencialesInvalidas("El código MFA no es correcto; no se firmó el documento")

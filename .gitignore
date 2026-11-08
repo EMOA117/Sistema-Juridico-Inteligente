@@ -27,3 +27,6 @@ Thumbs.db
 
 # Credenciales de demostración generadas localmente
 credenciales-demo.txt
+
+# PKI de demostración (llaves locales)
+proyecto/infrastructure/local/pki/

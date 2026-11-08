@@ -28,6 +28,11 @@ TEXTOS = {
     "SESION_CANCELADA": "El mediador canceló una sesión",
     "CONVENIO_LISTO": "El convenio está listo para tu revisión",
     "CONVENIO_APROBADO": "La otra parte aprobó el convenio",
+    "CONVENIO_FIRMADO": "Se registró una firma del convenio; falta la tuya o la de otra persona",
+    "CONVENIO_FORMALIZADO": "El convenio quedó formalizado con todas las firmas",
+    "EMPLAZAMIENTO": "Se registró el emplazamiento: corre el plazo de 15 días para contestar",
+    "RESOLUCION_EMITIDA": "El juez emitió una resolución firmada",
+    "EXPEDIENTE_CERRADO": "El expediente quedó cerrado con resolución firme",
 }
 
 

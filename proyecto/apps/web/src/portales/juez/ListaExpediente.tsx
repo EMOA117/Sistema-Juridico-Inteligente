@@ -1,5 +1,6 @@
 // Línea de tiempo del expediente: historial de estados, actuaciones y documentos con su huella SHA-256.
 import { t } from '@/compartido/componentes';
+import { abrirDocumento } from '@/compartido/servicios';
 import type { Expediente } from '@/compartido/tipos';
 
 const textoActuacion: Record<string, string> = {
@@ -30,7 +31,7 @@ export function ListaExpediente({ expediente: e }: { expediente: Expediente }) {
         {e.documentos.length === 0 && <p className="texto-2">Sin documentos digitales todavía.</p>}
         {e.documentos.map((d) => (
           <div key={d.id} className="columna" style={{ gap: 2 }}>
-            <a href={`/api/documentos/${d.id}`} target="_blank" rel="noreferrer">{d.nombre}</a>
+            <button type="button" onClick={() => abrirDocumento(d.id)} style={{ border: 0, background: 'none', padding: 0, color: 'var(--toga)', textDecoration: 'underline', cursor: 'pointer', textAlign: 'left', font: 'inherit' }}>{d.nombre}</button>
             <span className="mono pequeno texto-2">{t(d.tipo)} · SHA-256 {d.hash_sha256.slice(0, 8)}…{d.hash_sha256.slice(-4)}</span>
           </div>
         ))}

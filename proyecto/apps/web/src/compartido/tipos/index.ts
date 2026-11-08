@@ -146,6 +146,10 @@ export interface Expediente extends ExpedienteResumen {
   actuaciones: { tipo: string; texto: string | null; ocurrido_en: string }[];
   documentos: { id: string; tipo: string; nombre: string; hash_sha256: string; creado_en: string }[];
   soy_juez: boolean;
+  fecha_emplazamiento_validado: string | null;
+  fecha_limite_contestacion: string | null;
+  resolucion: { resultado: string; documento_id: string; hash_sha256: string; num_serie_firma: string; firmada_en: string;
+    sello_tiempo: string; fecha_firmeza: string | null } | null;
 }
 
 export interface CargaJuez {

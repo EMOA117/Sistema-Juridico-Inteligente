@@ -36,11 +36,14 @@ def detalle(p: Principal, expediente_id: UUID) -> dict:
                               " WHERE expediente_id=%s ORDER BY ocurrido_en", (expediente_id,)).fetchall()
         actuaciones = c.execute("SELECT tipo, texto, ocurrido_en FROM schema_judicial.actuacion"
                                 " WHERE expediente_id=%s ORDER BY ocurrido_en", (expediente_id,)).fetchall()
+        resolucion = c.execute("SELECT resultado, documento_id, hash_sha256, num_serie_firma, firmada_en, sello_tiempo, fecha_firmeza"
+                               " FROM schema_judicial.resolucion WHERE expediente_id=%s", (expediente_id,)).fetchone()
         documentos = c.execute("SELECT id, tipo, nombre, hash_sha256, creado_en FROM nucleo_comun.documento"
                                " WHERE expediente_id=%s ORDER BY creado_en", (expediente_id,)).fetchall()
     return {**_limpiar(e), **extra, "demanda_id": str(extra["demanda_id"]), "historial": historial,
             "actuaciones": actuaciones, "documentos": [{**d, "id": str(d["id"])} for d in documentos],
-            "soy_juez": e["juez_id"] == p.usuario_id}
+            "soy_juez": e["juez_id"] == p.usuario_id,
+            "resolucion": resolucion and {**resolucion, "documento_id": str(resolucion["documento_id"])}}
 
 
 def dictaminar(p: Principal, expediente_id: UUID, decision: str, texto: str | None) -> dict:

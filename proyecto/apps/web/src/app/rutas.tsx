@@ -9,6 +9,7 @@ const ActivarMFA = lazy(() => import('@/portales/publico/ActivarMFA'));
 const CambiarContrasena = lazy(() => import('@/portales/publico/CambiarContrasena'));
 const Usuarios = lazy(() => import('@/portales/administracion/Usuarios'));
 const Mediadores = lazy(() => import('@/portales/administracion/Mediadores'));
+const Verificar = lazy(() => import('@/portales/publico/Verificar'));
 const Invitacion = lazy(() => import('@/portales/publico/Invitacion'));
 const Invitar = lazy(() => import('@/portales/ciudadano/Invitar'));
 
@@ -40,6 +41,8 @@ export const router = createBrowserRouter([
   { path: '/login', element: <Login /> },
   { path: '/registro', element: conCarga(<Registro />) },
   { path: '/invitacion/:token', element: conCarga(<Invitacion />) },
+  { path: '/verificar', element: conCarga(<Verificar />) },
+  { path: '/verificar/:huella', element: conCarga(<Verificar />) },
   { path: '/mfa', element: conCarga(<ActivarMFA />) },
   { path: '/cambiar-contrasena', element: conCarga(<CambiarContrasena />) },
   {

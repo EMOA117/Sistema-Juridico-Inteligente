@@ -27,7 +27,13 @@ Después, en `services/core-api`, se siembran los datos sintéticos:
 uv run python -m herramientas.sembrar
 ```
 
-El script genera contraseñas y secretos TOTP aleatorios para las cuentas demo y los guarda en `credenciales-demo.txt`. Ese archivo está ignorado por git y no debe compartirse.
+Después, en `services/core-api`, se crea la PKI de demostración (CA raíz y TSA locales, sin validez legal):
+
+```bash
+uv run python -m herramientas.pki_init
+```
+
+El script de siembra genera contraseñas y secretos TOTP aleatorios para las cuentas demo y los guarda en `credenciales-demo.txt`. Ese archivo está ignorado por git y no debe compartirse.
 
 ## Roles de base de datos
 

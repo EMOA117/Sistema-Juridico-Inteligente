@@ -9,13 +9,14 @@ from compartido.bd import cerrar_pools
 from compartido.config import config
 from modulos.administracion.router import router as administracion
 from modulos.canalizacion.router import router as canalizacion
+from modulos.documentos.router import router as documentos
 from modulos.identidad.router import admin as personal, router as identidad
 from modulos.judicial.router import router as judicial
 from modulos.notificaciones.router import router as notificaciones
 from modulos.odr.router import publico as invitaciones, router as odr
 from modulos.orientacion.router import router as orientacion
 
-ROUTERS = [identidad, personal, orientacion, odr, invitaciones, canalizacion, judicial, administracion, notificaciones]
+ROUTERS = [identidad, personal, orientacion, odr, invitaciones, canalizacion, judicial, administracion, notificaciones, documentos]
 
 
 @asynccontextmanager

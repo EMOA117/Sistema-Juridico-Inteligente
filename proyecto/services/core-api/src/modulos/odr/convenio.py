@@ -79,3 +79,95 @@ def aprobar(p: Principal, mediacion_id: UUID) -> None:
                   (v["id"], p.usuario_id))
         registrar(c, usuario_id=p.usuario_id, entidad="convenio", entidad_id=v["id"], accion="CONVENIO_APROBADO")
         notificar(c, m["conflicto_id"], "CONVENIO_APROBADO", "mediacion", mediacion_id, excluir=p.usuario_id)
+
+
+# --- Firma y formalización (RF4.3, RF4.4) --------------------------------------------------------
+
+def firmar(p: Principal, mediacion_id: UUID, password: str, codigo_mfa: str | None) -> dict:
+    from compartido.documentos import almacen, pdf as generar
+    from compartido.firma import proveedor
+    from modulos.identidad.autorizacion import Rol
+    from modulos.identidad.servicio import confirmar_identidad
+
+    confirmar_identidad(p.usuario_id, password, codigo_mfa, exigir_mfa=p.rol != Rol.CIUDADANO)
+    with transaccion(RolBD.ODR, p.usuario_id) as c:
+        m = _mediacion(c, mediacion_id, bloquear=True)
+        v = c.execute("SELECT * FROM schema_odr.convenio WHERE mediacion_id=%s FOR UPDATE", (mediacion_id,)).fetchone()
+        if not v:
+            raise NoEncontrado("Aún no hay convenio")
+        if v["formalizado_en"]:
+            raise ReglaNegocio("El convenio ya fue formalizado")
+        partes = c.execute("SELECT usuario_id, nombre FROM nucleo_comun.parte WHERE conflicto_id=%s ORDER BY rol DESC",
+                           (m["conflicto_id"],)).fetchall()
+        if any(x["usuario_id"] is None for x in partes):
+            raise ReglaNegocio("Ambas partes deben estar registradas para firmar")
+        aprobados = {r["usuario_id"] for r in c.execute("SELECT usuario_id FROM schema_odr.aprobacion_convenio WHERE convenio_id=%s", (v["id"],))}
+        if any(x["usuario_id"] not in aprobados for x in partes):
+            raise ReglaNegocio("Ambas partes deben aprobar el texto antes de firmar")
+        mediador = c.execute("SELECT * FROM schema_odr.mediador_publico(%s)", (mediacion_id,)).fetchone() if m["mediador_id"] else None
+        firmantes = {x["usuario_id"]: x["nombre"] for x in partes}
+        if m["mediador_id"]:
+            firmantes[m["mediador_id"]] = mediador["nombre"]
+        if p.usuario_id not in firmantes:
+            raise ReglaNegocio("No eres firmante de este convenio")
+        firmadas = {r["usuario_id"] for r in c.execute("SELECT usuario_id FROM schema_odr.firma_convenio WHERE convenio_id=%s", (v["id"],))}
+        if p.usuario_id in firmadas:
+            raise ReglaNegocio("Ya firmaste este convenio")
+
+        if v["clave_borrador"]:
+            documento = almacen.leer(v["clave_borrador"], trabajo=True)
+        else:
+            documento = generar.convenio(m["folio"], v["tipo"], [x["nombre"] for x in partes], mediador and mediador["nombre"],
+                                         descifrar(v["terminos_acordados_cifrados"], f"convenio:{mediacion_id}"), v["puntos_pendientes"])
+        r = proveedor().firmar_pdf(c, p.usuario_id, firmantes[p.usuario_id], documento, f"Firma_{len(firmadas) + 1}")
+        clave = f"convenios/{v['id']}/firma-{len(firmadas) + 1}.pdf"
+        almacen.guardar_trabajo(clave, r.pdf)
+        c.execute("UPDATE schema_odr.convenio SET clave_borrador=%s WHERE id=%s", (clave, v["id"]))
+        c.execute("INSERT INTO schema_odr.firma_convenio (convenio_id, usuario_id, num_serie, sello_tiempo) VALUES (%s,%s,%s,%s)",
+                  (v["id"], p.usuario_id, r.num_serie, r.sello_tiempo))
+        registrar(c, usuario_id=p.usuario_id, entidad="convenio", entidad_id=v["id"], accion="CONVENIO_FIRMADO")
+
+        if set(firmantes) - firmadas - {p.usuario_id}:
+            notificar(c, m["conflicto_id"], "CONVENIO_FIRMADO", "mediacion", mediacion_id, excluir=p.usuario_id)
+            return {"formalizado": False, "faltan": len(set(firmantes) - firmadas) - 1}
+        return _formalizar(c, p, m, v, r.pdf, r.sello_tiempo)
+
+
+def _formalizar(c, p: Principal, m: dict, v: dict, pdf_final: bytes, sello) -> dict:
+    from compartido.documentos import almacen
+
+    huella = almacen.sha256(pdf_final)
+    clave = f"convenios/{m['folio']}/{huella}.pdf"
+    version = almacen.guardar_inmutable(clave, pdf_final)
+    doc_id = uuid4()
+    c.execute("INSERT INTO nucleo_comun.documento (id, dominio, conflicto_id, tipo, nombre, clave_objeto, version_objeto, hash_sha256, subido_por)"
+              " VALUES (%s,'ODR',%s,'CONVENIO',%s,%s,%s,%s,%s)",
+              (doc_id, m["conflicto_id"], f"Convenio {m['folio']}.pdf", clave, version, huella, p.usuario_id))
+    series = ";".join(r["num_serie"] for r in c.execute(
+        "SELECT num_serie FROM schema_odr.firma_convenio WHERE convenio_id=%s ORDER BY sello_tiempo", (v["id"],)))
+    c.execute("UPDATE schema_odr.convenio SET formalizado_en=now(), documento_id=%s, hash_sha256=%s, num_serie_firma=%s,"
+              " sello_tiempo=%s WHERE id=%s", (doc_id, huella, series, sello, v["id"]))
+    resultado = "ACUERDO_TOTAL" if v["tipo"] == "TOTAL" else "ACUERDO_PARCIAL"
+    c.execute("UPDATE schema_odr.mediacion SET estado='CONCLUIDA', resultado=%s, concluida_en=now() WHERE id=%s", (resultado, m["id"]))
+    nuevo = "CONCLUIDO" if v["tipo"] == "TOTAL" else "EN_ESPERA_DECISION"
+    c.execute("UPDATE nucleo_comun.conflicto SET estado=%s WHERE id=%s", (nuevo, m["conflicto_id"]))
+    registrar(c, usuario_id=p.usuario_id, entidad="convenio", entidad_id=v["id"], accion="CONVENIO_FORMALIZADO",
+              estado_anterior="EN_MEDIACION", estado_nuevo=nuevo)
+    notificar(c, m["conflicto_id"], "CONVENIO_FORMALIZADO", "mediacion", m["id"])
+    return {"formalizado": True, "hash_sha256": huella, "documento_id": str(doc_id)}
+
+
+def estado_firmas(p: Principal, mediacion_id: UUID) -> list[dict]:
+    with transaccion(RolBD.ODR, p.usuario_id) as c:
+        m = _mediacion(c, mediacion_id)
+        v = c.execute("SELECT id FROM schema_odr.convenio WHERE mediacion_id=%s", (mediacion_id,)).fetchone()
+        if not v:
+            return []
+        firmas = {r["usuario_id"]: r for r in c.execute("SELECT * FROM schema_odr.firma_convenio WHERE convenio_id=%s", (v["id"],))}
+        filas = [(x["usuario_id"], x["nombre"]) for x in c.execute(
+            "SELECT usuario_id, nombre FROM nucleo_comun.parte WHERE conflicto_id=%s ORDER BY rol DESC", (m["conflicto_id"],))]
+        if m["mediador_id"]:
+            filas.append((m["mediador_id"], c.execute("SELECT nombre FROM schema_odr.mediador_publico(%s)", (mediacion_id,)).fetchone()["nombre"]))
+    return [{"nombre": n, "soy_yo": u == p.usuario_id, "firmo": u in firmas,
+             "num_serie": firmas[u]["num_serie"] if u in firmas else None,
+             "sello_tiempo": firmas[u]["sello_tiempo"] if u in firmas else None} for u, n in filas]

@@ -27,9 +27,20 @@ La documentación interactiva queda en <http://localhost:8000/docs>.
 | `odr.invitaciones` | `app_odr`, `app_auth` | `POST /conflictos/{id}/mediacion` (token de 43 caracteres, solo se guarda su SHA-256), `GET /invitaciones/{token}`, `POST /invitaciones/{token}/responder` |
 | `odr.mediadores` | `app_odr`, `app_admin` | `POST /mediaciones/{id}/solicitar-mediador` (asignación automática por especialidad y menor carga, en `schema_odr.asignar_mediador`), sesiones, notas cifradas, `POST /mediaciones/{id}/concluir`, `GET /mediador/agenda`, `GET/PUT /admin/mediadores`, `POST /admin/asignaciones/{id}` |
 | `odr.convenio` | `app_odr` | `GET/PUT /mediaciones/{id}/convenio` (editar reinicia aprobaciones), `POST /mediaciones/{id}/convenio/aprobar` |
+| `documentos` + firma | `app_odr`, `app_judicial`, `app_auth` | `POST /mediaciones/{id}/convenio/firmar`, `POST /expedientes/{id}/emplazamiento`, `/tramite`, `/resolucion`, `/firmeza`, `GET /documentos/{id}`, `GET /verificar/{sha256}` (público) |
 | `notificaciones` | `app_nucleo` | `GET /notificaciones`, `POST /notificaciones/leidas` |
 
 Algunas funciones (`clasificador`, `generador_borrador`, `despues_de_*`) son **puntos de extensión**. Ahí se conectan las notificaciones y el servicio de IA sin cambiar las reglas del flujo.
+
+## Firma institucional (demostración)
+
+`compartido/firma` define `ProveedorFirma`. La implementación actual, `PkiLocal`, funciona así:
+- usa una CA raíz y una TSA propias (`uv run python -m herramientas.pki_init`, guardadas en `infrastructure/local/pki`, ignorado por git);
+- emite un certificado X.509 por firmante;
+- firma el PDF en formato PAdES con sello de tiempo (`pyhanko`);
+- guarda la llave privada cifrada con AES-256-GCM en la base de datos, como lo haría un HSM.
+
+Firmar exige volver a escribir la contraseña y, para el personal, el código TOTP. El documento final se guarda en RustFS con retención **COMPLIANCE** (WORM). En PostgreSQL quedan su SHA-256, el número de serie y el sello de tiempo. Para usar el proveedor real del Tribunal basta con otra implementación de `ProveedorFirma`. **Estas firmas no tienen validez legal.**
 
 ## Tareas en segundo plano
 
