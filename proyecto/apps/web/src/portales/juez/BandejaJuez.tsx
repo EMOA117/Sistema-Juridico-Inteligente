@@ -132,7 +132,7 @@ function DetalleExpediente({ id, alCambiar }: { id: string; alCambiar: () => voi
         )}
         {e.soy_juez && <PanelResolucion expediente={e} alCambiar={() => { recargar(); alCambiar(); }} />}
       </div>
-      <ListaExpediente expediente={e} />
+      <ListaExpediente expediente={e} alCambiar={recargar} />
     </>
   );
 }

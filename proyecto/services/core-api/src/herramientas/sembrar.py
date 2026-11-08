@@ -108,6 +108,9 @@ def main() -> None:
         c.execute("UPDATE schema_judicial.expediente SET juez_id=%s, juzgado_id=%s, estado='EN_REVISION' WHERE id=%s",
                   (ids["juez.civil@demo.test"], civil, e2))
 
+        anexos_sinteticos(c, e2, d2, lucia)
+        c.execute("INSERT INTO schema_judicial.indexacion (expediente_id, tipo) VALUES (%s,'DEMANDA')", (e2,))
+
         # Escenario 3: asunto familiar orientado por Lucía, aún sin ruta elegida.
         actor(c, lucia)
         _conflicto(c, lucia, "Lucía Torres Gómez", "lucia@demo.test", "Raúl Ortega (sintético)", "raul@demo.test", None,
@@ -117,6 +120,38 @@ def main() -> None:
     (INFRA / "credenciales-demo.txt").write_text("\n".join(lineas) + "\n", encoding="utf-8")
     os.chmod(INFRA / "credenciales-demo.txt", 0o600)
     print(f"Datos sintéticos creados. Credenciales en {INFRA / 'credenciales-demo.txt'}")
+
+
+ANEXOS = {
+    "Contestacion_sintetica.txt": (
+        "CONTESTACIÓN DE DEMANDA (documento sintético de demostración)\n"
+        "Inmobiliaria Sur S.A., por conducto de su apoderado, niega que la filtración se deba a falta de mantenimiento. "
+        "Afirma que el 3 de febrero envió a un plomero que realizó una reparación provisional y que la arrendataria no permitió "
+        "el acceso para la reparación definitiva el 10 de febrero. Ofrece como prueba el reporte del plomero y mensajes de "
+        "WhatsApp en los que solicita acceso al departamento. Niega el monto de $28,000 por falta de facturas de los muebles."),
+    "Anexo_Avisos_arrendataria.txt": (
+        "AVISOS POR ESCRITO DE LA ARRENDATARIA (documento sintético de demostración)\n"
+        "Primer aviso, 12 de enero: se informa de una fuga en el techo del baño que gotea sobre la recámara. "
+        "Segundo aviso, 26 de enero: la fuga aumentó y mojó el colchón y un ropero. "
+        "Tercer aviso, 9 de febrero: se acepta la visita del plomero para el 10 de febrero entre 9 y 14 horas. "
+        "El plomero no se presentó en ese horario según el registro de acceso del edificio."),
+}
+
+
+def anexos_sinteticos(c, expediente_id, demanda_id, autor) -> None:
+    """Anexos de texto para que la búsqueda semántica tenga evidencia que citar en la demostración."""
+    from compartido.documentos import almacen
+    conflicto = c.execute("SELECT conflicto_id FROM schema_judicial.demanda WHERE id=%s", (demanda_id,)).fetchone()["conflicto_id"]
+    for nombre, texto in ANEXOS.items():
+        datos = texto.encode()
+        huella = almacen.sha256(datos)
+        clave = f"expedientes/semilla/{huella}-{nombre}"
+        version = almacen.guardar_inmutable(clave, datos, "text/plain")
+        doc = c.execute("INSERT INTO nucleo_comun.documento (dominio, conflicto_id, expediente_id, tipo, nombre, clave_objeto,"
+                        " version_objeto, hash_sha256, paginas, subido_por) VALUES ('JUDICIAL',%s,%s,'ANEXO',%s,%s,%s,%s,1,%s) RETURNING id",
+                        (conflicto, expediente_id, nombre, clave, version, huella, autor)).fetchone()["id"]
+        c.execute("INSERT INTO schema_judicial.indexacion (expediente_id, documento_id, tipo) VALUES (%s,%s,'ANEXO')",
+                  (expediente_id, doc))
 
 
 def _conflicto(c, solicitante, nom_a, correo_a, nom_b, correo_b, usuario_b, narrativa, materia, mediable=True):

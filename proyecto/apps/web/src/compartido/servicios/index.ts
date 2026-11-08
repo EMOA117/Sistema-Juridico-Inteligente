@@ -120,3 +120,20 @@ export async function abrirDocumento(documentoId: string) {
   if (ventana) ventana.location.href = url; else window.location.href = url;
   setTimeout(() => URL.revokeObjectURL(url), 60_000);
 }
+
+export interface FragmentoRag { n: number; id: string; documento: string; pagina: number | null; acceso: 'PUBLICO' | 'EXPEDIENTE'; puntaje: number; texto: string }
+
+export const ia = {
+  sugerenciaAcuerdo: (mediacionId: string) =>
+    get<{ disponible: boolean; sugerencia?: string | null; fundamento?: string; casos?: number; latencia_ms?: number }>(`/mediaciones/${mediacionId}/sugerencia`),
+  sugerenciaTurno: (expedienteId: string) =>
+    get<{ disponible: boolean; sugerencias: { juez_id: string; juzgado_id: string; puntaje: number; justificacion: string }[] }>(`/admin/expedientes/${expedienteId}/sugerencia-turno`),
+  consultar: (expedienteId: string, pregunta: string, incluir_expediente: boolean, incluir_publico: boolean) =>
+    post<{ disponible: boolean; sintesis: string | null; motivo?: string; citas?: number[]; fragmentos: FragmentoRag[]; latencia_ms?: number }>(
+      `/expedientes/${expedienteId}/consulta`, { pregunta, incluir_expediente, incluir_publico }),
+  subirAnexo: (expedienteId: string, archivo: File) => {
+    const datos = new FormData();
+    datos.append('archivo', archivo);
+    return http<{ id: string; hash_sha256: string }>(`/expedientes/${expedienteId}/documentos`, { method: 'POST', body: datos });
+  },
+};

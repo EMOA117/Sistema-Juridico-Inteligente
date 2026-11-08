@@ -38,3 +38,22 @@ El script de siembra genera contraseñas y secretos TOTP aleatorios para las cue
 ## Roles de base de datos
 
 `init-db.sh` crea un login por rol de aplicación (`app_nucleo`, `app_auth`, `app_odr`, `app_judicial`, `app_admin`, `app_canalizador`, `app_tareas`). Todos usan la contraseña `PG_APP_PASSWORD`. Cada módulo de `core-api` se conecta solo con el suyo, y el rol judicial no tiene acceso a `schema_odr`.
+
+## Asistente de IA
+
+```bash
+OLLAMA_MODELS="/ruta/a/modelos" ollama serve       # opcional: carpeta de modelos en otro disco
+ollama pull qwen2.5:7b && ollama pull bge-m3
+cd ../../services/ia-service && uv run python ../../persistence/mongo/inicializar.py
+```
+
+## Arranque diario (4 terminales)
+
+```bash
+cd services/core-api && uv run uvicorn api.main:app --app-dir src --port 8000 --reload
+cd services/core-api/src && uv run --project .. python -m tareas      # correos, vencimientos e indexación
+cd services/ia-service && uv run uvicorn api.main:app --app-dir src --port 8001
+cd apps/web && npm run dev
+```
+
+Tras sembrar datos o reiniciar Mongo: `uv run python -m herramientas.reindexar` (en `services/core-api/src`).

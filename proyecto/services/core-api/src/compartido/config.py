@@ -29,6 +29,9 @@ class Config(BaseSettings):
     bucket_documentos: str = "sji-documentos"     # con Object Lock (WORM)
     bucket_trabajo: str = "sji-trabajo"           # borradores en proceso de firma
     retencion_dias: int = 30                      # demostración; en producción la fija la política documental
+    ia_url: str = "http://localhost:8001"
+    ia_token: str = ""
+    ia_timeout_s: float = 30.0
     pki_dir: str = str(Path(__file__).resolve().parents[4] / "infrastructure" / "local" / "pki")
 
     def dsn(self, login: str) -> str:

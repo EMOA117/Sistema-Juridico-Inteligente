@@ -1,6 +1,7 @@
 // Línea de tiempo del expediente: historial de estados, actuaciones y documentos con su huella SHA-256.
 import { t } from '@/compartido/componentes';
 import { abrirDocumento } from '@/compartido/servicios';
+import { SubirAnexo } from '@/compartido/componentes/SubirAnexo';
 import type { Expediente } from '@/compartido/tipos';
 
 const textoActuacion: Record<string, string> = {
@@ -8,7 +9,7 @@ const textoActuacion: Record<string, string> = {
   CORRECCION: 'Corrección presentada', NOTA: 'Nota',
 };
 
-export function ListaExpediente({ expediente: e }: { expediente: Expediente }) {
+export function ListaExpediente({ expediente: e, alCambiar }: { expediente: Expediente; alCambiar?: () => void }) {
   const eventos = [
     ...e.historial.map((h) => ({ fecha: h.ocurrido_en, titulo: `${t(h.estado_anterior)} → ${t(h.estado_nuevo)}`, detalle: '' })),
     ...e.actuaciones.map((a) => ({ fecha: a.ocurrido_en, titulo: textoActuacion[a.tipo] ?? a.tipo, detalle: a.texto ?? '' })),
@@ -29,6 +30,7 @@ export function ListaExpediente({ expediente: e }: { expediente: Expediente }) {
       <section className="tarjeta" aria-labelledby="h-docs" style={{ flex: '1 1 360px' }}>
         <h3 id="h-docs" className="titulo-seccion">Documentos</h3>
         {e.documentos.length === 0 && <p className="texto-2">Sin documentos digitales todavía.</p>}
+        {alCambiar && e.estado !== 'CERRADO' && <SubirAnexo expedienteId={e.id} alSubir={alCambiar} />}
         {e.documentos.map((d) => (
           <div key={d.id} className="columna" style={{ gap: 2 }}>
             <button type="button" onClick={() => abrirDocumento(d.id)} style={{ border: 0, background: 'none', padding: 0, color: 'var(--toga)', textDecoration: 'underline', cursor: 'pointer', textAlign: 'left', font: 'inherit' }}>{d.nombre}</button>

@@ -9,7 +9,11 @@ from modulos.judicial.demandas import plantillas
 
 
 def generador_borrador(datos: dict) -> dict:
-    """Punto de extensión: la fase de IA usa ia-service y cae a la plantilla si no responde."""
+    """RF5.1: borrador con ia-service; si no responde, plantilla procesal. Siempre editable y con confirmación."""
+    from modulos import ia_cliente
+    r = ia_cliente.borrador_demanda(datos)
+    if r and r.get("texto"):
+        return {**r, "modelo": "qwen2.5:7b"}
     return {"texto": plantillas.redactar(datos), "origen": "PLANTILLA", "interaccion_ia_id": None}
 
 
@@ -92,7 +96,9 @@ def confirmar(p: Principal, demanda_id: UUID, texto: str) -> dict:
 
 
 def despues_de_expediente(c, expediente_id: UUID, actor: UUID) -> None:
+    from modulos.documentos.indexacion import encolar_demanda
     from modulos.notificaciones.servicio import notificar
+    encolar_demanda(c, expediente_id)
     conf = c.execute("SELECT d.conflicto_id FROM schema_judicial.expediente e JOIN schema_judicial.demanda d ON d.id=e.demanda_id"
                      " WHERE e.id=%s", (expediente_id,)).fetchone()
     notificar(c, conf["conflicto_id"], "EXPEDIENTE_CREADO", "expediente", expediente_id, incluir_mediador=False)

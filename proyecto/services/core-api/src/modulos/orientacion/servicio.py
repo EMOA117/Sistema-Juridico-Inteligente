@@ -12,7 +12,11 @@ _CAMPOS = ("c.id, c.folio, c.estado, c.materia, c.mediable, c.complejidad, c.con
 
 
 def clasificador(narrativa: str) -> dict:
-    """Punto de extensión: la fase de IA lo reemplaza por el cliente de ia-service con respaldo en reglas."""
+    """RF2.2–RF2.3: ia-service (PLN) con respaldo en reglas si no responde a tiempo."""
+    from modulos import ia_cliente
+    r = ia_cliente.clasificar(narrativa)
+    if r and r.get("materia") in ("CIVIL", "FAMILIAR"):
+        return {**r, "modelo": "qwen2.5:7b"}
     return reglas.clasificar(narrativa)
 
 

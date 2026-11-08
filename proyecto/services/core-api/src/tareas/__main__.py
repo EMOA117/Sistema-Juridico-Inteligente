@@ -3,6 +3,7 @@ import logging
 import time
 
 from compartido.config import config
+from modulos.documentos import indexacion
 from tareas import envio_notificaciones, vencimiento_invitaciones
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
@@ -17,6 +18,8 @@ def main() -> None:
         try:
             if (n := envio_notificaciones.despachar_lote()):
                 log.info("Avisos enviados: %s", n)
+            if (n := indexacion.procesar_lote()):
+                log.info("Documentos indexados: %s", n)
             if time.time() - ultima_diaria > 3600:  # revisión horaria; las fechas límite son diarias
                 ultima_diaria = time.time()
                 if (n := vencimiento_invitaciones.ejecutar()):

@@ -45,7 +45,7 @@ export default function ExpedienteCiudadano() {
             <button type="button" className="boton toga" disabled={texto.trim().length < 100} onClick={reenviar}>Reenviar corrección</button>
           </section>
         )}
-        <ListaExpediente expediente={e} />
+        <ListaExpediente expediente={e} alCambiar={recargar} />
       </div>
     </div>
   );

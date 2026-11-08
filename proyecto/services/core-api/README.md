@@ -28,6 +28,7 @@ La documentación interactiva queda en <http://localhost:8000/docs>.
 | `odr.mediadores` | `app_odr`, `app_admin` | `POST /mediaciones/{id}/solicitar-mediador` (asignación automática por especialidad y menor carga, en `schema_odr.asignar_mediador`), sesiones, notas cifradas, `POST /mediaciones/{id}/concluir`, `GET /mediador/agenda`, `GET/PUT /admin/mediadores`, `POST /admin/asignaciones/{id}` |
 | `odr.convenio` | `app_odr` | `GET/PUT /mediaciones/{id}/convenio` (editar reinicia aprobaciones), `POST /mediaciones/{id}/convenio/aprobar` |
 | `documentos` + firma | `app_odr`, `app_judicial`, `app_auth` | `POST /mediaciones/{id}/convenio/firmar`, `POST /expedientes/{id}/emplazamiento`, `/tramite`, `/resolucion`, `/firmeza`, `GET /documentos/{id}`, `GET /verificar/{sha256}` (público) |
+| `ia_router` | según la función | `GET /mediaciones/{id}/sugerencia`, `GET /admin/expedientes/{id}/sugerencia-turno`, `POST /expedientes/{id}/consulta` (403 si no es el juez titular, **antes** de llamar a la IA), `POST /expedientes/{id}/documentos` (anexos inmutables, indexados en segundo plano) |
 | `notificaciones` | `app_nucleo` | `GET /notificaciones`, `POST /notificaciones/leidas` |
 
 Algunas funciones (`clasificador`, `generador_borrador`, `despues_de_*`) son **puntos de extensión**. Ahí se conectan las notificaciones y el servicio de IA sin cambiar las reglas del flujo.
@@ -53,5 +54,5 @@ Cada cambio de estado inserta un aviso `PENDIENTE` en `nucleo_comun.notificacion
 ## Pruebas
 
 ```bash
-uv run pytest
+uv run pytest            # la IA se simula caída; las pruebas marcadas ia_real usan ia-service y Ollama reales
 ```

@@ -30,6 +30,19 @@ def owner():
     conn.close()
 
 
+def pytest_configure(config):
+    config.addinivalue_line("markers", "ia_real: usa ia-service y Ollama reales (lentas)")
+
+
+@pytest.fixture(autouse=True)
+def ia_desactivada(request, monkeypatch):
+    """Por defecto las pruebas no dependen de la latencia del modelo: la IA se simula caída y se usa el respaldo."""
+    if request.node.get_closest_marker("ia_real"):
+        return
+    from compartido.config import config
+    monkeypatch.setattr(config(), "ia_url", "http://localhost:9")
+
+
 @pytest.fixture(scope="session")
 def app():
     from fastapi.testclient import TestClient
