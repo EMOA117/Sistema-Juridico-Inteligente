@@ -30,3 +30,5 @@ credenciales-demo.txt
 
 # PKI de demostración (llaves locales)
 proyecto/infrastructure/local/pki/
+playwright-report/
+test-results/

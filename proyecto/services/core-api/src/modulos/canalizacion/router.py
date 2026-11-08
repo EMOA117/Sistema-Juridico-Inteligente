@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Header
 from pydantic import BaseModel, ConfigDict
 
 from compartido.seguridad.dependencias import Sesion
@@ -15,5 +15,6 @@ class SolicitudCanalizacion(BaseModel):
 
 
 @router.post("/conflictos/{conflicto_id}/canalizar", status_code=201)
-def canalizar(conflicto_id: UUID, p: Sesion, _: SolicitudCanalizacion | None = None):
-    return servicio.canalizar(p, conflicto_id)
+def canalizar(conflicto_id: UUID, p: Sesion, _: SolicitudCanalizacion | None = None,
+              clave: UUID | None = Header(default=None, alias="Idempotency-Key")):
+    return servicio.canalizar(p, conflicto_id, clave)

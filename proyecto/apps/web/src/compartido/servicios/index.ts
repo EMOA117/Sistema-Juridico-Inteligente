@@ -29,7 +29,9 @@ export const conflictos = {
   narrativa: (id: string, narrativa: string) => put<Orientacion>(`/conflictos/${id}/narrativa`, { narrativa }),
   confirmar: (id: string, materia: Materia) => post(`/conflictos/${id}/confirmar`, { materia }),
   actualizarParte: (parteId: string, datos: { domicilio?: string; correo?: string }) => patch(`/conflictos/partes/${parteId}`, datos),
-  canalizar: (id: string) => post<{ demanda_id: string }>(`/conflictos/${id}/canalizar`),
+  // La clave hace idempotente el reintento (doble clic o red inestable): misma clave, misma demanda.
+  canalizar: (id: string, clave: string = crypto.randomUUID()) =>
+    http<{ demanda_id: string }>(`/conflictos/${id}/canalizar`, { method: 'POST', headers: { 'Idempotency-Key': clave } }),
   invitar: (id: string, correo: string, plazo_dias: number) =>
     post<{ mediacion_id: string; fecha_limite: string }>(`/conflictos/${id}/mediacion`, { correo, plazo_dias }),
 };

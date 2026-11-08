@@ -4,7 +4,7 @@ import time
 
 from compartido.config import config
 from modulos.documentos import indexacion
-from tareas import envio_notificaciones, vencimiento_invitaciones
+from tareas import envio_notificaciones, eventos_pendientes, vencimiento_invitaciones
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(message)s")
 log = logging.getLogger("tareas")
@@ -16,6 +16,8 @@ def main() -> None:
     log.info("Tareas iniciadas (intervalo %ss)", intervalo)
     while True:
         try:
+            if (n := eventos_pendientes.procesar()):
+                log.info("Eventos procesados: %s", n)
             if (n := envio_notificaciones.despachar_lote()):
                 log.info("Avisos enviados: %s", n)
             if (n := indexacion.procesar_lote()):

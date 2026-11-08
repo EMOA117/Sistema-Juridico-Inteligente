@@ -57,3 +57,42 @@ cd apps/web && npm run dev
 ```
 
 Tras sembrar datos o reiniciar Mongo: `uv run python -m herramientas.reindexar` (en `services/core-api/src`).
+
+## Windows (PowerShell)
+
+Requisitos: Docker Desktop (con WSL 2), Python 3.12+ con [`uv`](https://docs.astral.sh/uv/), Node 22.12+ y Ollama para Windows. `init-db.sh` es un script de Bash: ejecútalo desde **Git Bash** o WSL; el resto de los comandos funciona en PowerShell desde la raíz del repositorio.
+
+```powershell
+cd proyecto/infrastructure/local
+Copy-Item .env.example .env          # y cambia las contraseñas
+docker compose up -d
+bash ./init-db.sh                    # desde Git Bash o WSL
+
+cd ../../services/core-api
+uv run python -m herramientas.sembrar
+uv run python -m herramientas.pki_init
+
+ollama pull qwen2.5:7b; ollama pull bge-m3
+cd ../ia-service; uv run python ../../persistence/mongo/inicializar.py
+```
+
+Arranque diario, una terminal de PowerShell por proceso:
+
+```powershell
+cd proyecto/services/core-api;     uv run uvicorn api.main:app --app-dir src --port 8000 --reload
+cd proyecto/services/core-api/src; uv run --project .. python -m tareas
+cd proyecto/services/ia-service;   uv run uvicorn api.main:app --app-dir src --port 8001
+cd proyecto/apps/web;              npm ci; npm run dev
+```
+
+Si el puerto 5433 o 27018 está ocupado, cámbialo en `docker-compose.yml` y en los `.env` de los servicios.
+
+## Pruebas
+
+```bash
+cd services/core-api && uv run --extra test pytest -q -m "not ia_real"   # integración contra la BD del compose
+cd services/core-api && uv run --extra test pytest -q -m ia_real         # con ia-service y Ollama reales (lentas)
+cd apps/web && npm run test:e2e                                          # recorrido en navegador; requiere todo levantado
+```
+
+La prueba de navegador usa el Chrome instalado. Para usar el Chromium de Playwright: `npx playwright install chromium` y `PLAYWRIGHT_CHANNEL= npm run test:e2e`.

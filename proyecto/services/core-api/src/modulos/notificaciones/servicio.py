@@ -16,6 +16,7 @@ TEXTOS = {
     "PROPUESTA_ACEPTADA": "Aceptaron tu propuesta",
     "PROPUESTA_RECHAZADA": "Rechazaron tu propuesta",
     "MEDIACION_CONCLUIDA": "La mediación concluyó",
+    "DEMANDA_BORRADOR_LISTA": "Tu asunto pasó a la vía judicial: el borrador de demanda está listo para revisar",
     "EXPEDIENTE_CREADO": "Tu demanda fue presentada y se creó el expediente",
     "EXPEDIENTE_ASIGNADO": "El expediente fue asignado a un juzgado",
     "EXPEDIENTE_TURNADO": "Se te asignó un expediente nuevo",

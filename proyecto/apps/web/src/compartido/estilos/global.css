@@ -49,6 +49,9 @@ p { margin: 0; }
 .pagina { min-height: 100vh; display: flex; flex-direction: column; }
 .contenedor { width: 100%; max-width: 1360px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
 .fila { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+/* En móvil, un hijo con texto largo sin espacios (series de certificado, huellas) no debe ensanchar la página. */
+.fila > * { min-width: 0; max-width: 100%; }
+.mono { overflow-wrap: anywhere; }
 .columna { display: flex; flex-direction: column; gap: 12px; }
 .crece { flex: 1 1 0; min-width: 0; }
 

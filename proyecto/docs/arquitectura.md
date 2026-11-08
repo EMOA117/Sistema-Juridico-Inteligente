@@ -1,5 +1,9 @@
 # Revisión inicial de la arquitectura
 
+## Estado de implementación
+
+El módulo ODR, la vía judicial base, la firma de demostración y el servicio de IA ya están implementados en `develop`. La guía [Módulo ODR](odr.md) distingue lo que funciona hoy de lo pendiente (verificación de correo, firma institucional, operación). Las secciones siguientes describen la arquitectura objetivo.
+
 ## Veredicto
 
 La arquitectura propuesta **sí sirve como base del MVP civil y familiar**. La división entre aplicación web, núcleo transaccional modular y servicio interno de IA es coherente con el recorrido completo: captura, análisis, mediación, canalización, demanda, contestación y resolución. Mantener los módulos jurídicos dentro de un solo `core-api` facilita transacciones y evita distribuir prematuramente el flujo de un expediente. El primer despliegue será una demostración local para ESCOM con datos sintéticos.
