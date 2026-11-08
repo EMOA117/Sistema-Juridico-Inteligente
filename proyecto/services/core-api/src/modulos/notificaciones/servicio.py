@@ -22,6 +22,12 @@ TEXTOS = {
     "DICTAMEN_ADMITIDO": "La demanda fue admitida",
     "DICTAMEN_PREVENIDO": "El juzgado pidió corregir la demanda",
     "CORRECCION_PRESENTADA": "Se presentó la corrección de una demanda",
+    "MEDIACION_ASIGNADA": "Se te asignó una mediación",
+    "MEDIADOR_ASIGNADO": "Un mediador certificado se integró a tu mediación",
+    "SESION_PROGRAMADA": "El mediador programó una sesión",
+    "SESION_CANCELADA": "El mediador canceló una sesión",
+    "CONVENIO_LISTO": "El convenio está listo para tu revisión",
+    "CONVENIO_APROBADO": "La otra parte aprobó el convenio",
 }
 
 

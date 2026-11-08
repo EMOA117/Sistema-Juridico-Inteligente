@@ -8,6 +8,7 @@ const Registro = lazy(() => import('@/portales/publico/Registro'));
 const ActivarMFA = lazy(() => import('@/portales/publico/ActivarMFA'));
 const CambiarContrasena = lazy(() => import('@/portales/publico/CambiarContrasena'));
 const Usuarios = lazy(() => import('@/portales/administracion/Usuarios'));
+const Mediadores = lazy(() => import('@/portales/administracion/Mediadores'));
 const Invitacion = lazy(() => import('@/portales/publico/Invitacion'));
 const Invitar = lazy(() => import('@/portales/ciudadano/Invitar'));
 
@@ -86,11 +87,13 @@ export const router = createBrowserRouter([
         { a: '/admin', texto: 'Indicadores' },
         { a: '/admin/turno', texto: 'Turno de expedientes' },
         { a: '/admin/usuarios', texto: 'Personal' },
+        { a: '/admin/mediadores', texto: 'Mediadores' },
       ]} />,
       children: [
         { index: true, element: conCarga(<TableroIndicadores />) },
         { path: 'turno', element: conCarga(<Turno />) },
         { path: 'usuarios', element: conCarga(<Usuarios />) },
+        { path: 'mediadores', element: conCarga(<Mediadores />) },
       ],
     }],
   },

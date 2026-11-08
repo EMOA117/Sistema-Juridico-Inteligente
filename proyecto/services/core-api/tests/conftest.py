@@ -79,6 +79,9 @@ def crear_usuario(owner, app):
             secreto = pyotp.random_base32()
             owner.execute("UPDATE nucleo_comun.usuario SET mfa_habilitado=true, mfa_secreto_cifrado=%s WHERE id=%s",
                           (cifrar(secreto, f"mfa:{uid}"), uid))
+        if rol == "MEDIADOR":
+            owner.execute("INSERT INTO schema_odr.mediador (usuario_id, num_certificacion, especialidades, max_casos)"
+                          " VALUES (%s,%s,%s,50)", (uid, f"QA-{uuid.uuid4().hex[:8]}", [especialidad] if especialidad else ["CIVIL", "FAMILIAR"]))
         if rol == "JUEZ":
             j = owner.execute("INSERT INTO schema_judicial.juzgado (nombre, materia) VALUES (%s,%s) RETURNING id",
                               (f"Juzgado QA {uuid.uuid4().hex[:6]}", especialidad or "CIVIL")).fetchone()["id"]
@@ -101,4 +104,16 @@ def conflicto_orientado(crear_usuario):
         assert actor.put(f"/conflictos/{cid}/narrativa", {"narrativa": "Le presté dinero a mi vecino y no me ha pagado nada en seis meses."}).status_code == 200
         assert actor.post(f"/conflictos/{cid}/confirmar", {"materia": "CIVIL"}).status_code == 200
         return actor, otra, cid
+    return crear
+
+
+@pytest.fixture
+def negociacion(owner, conflicto_orientado):
+    """Conflicto con la invitación aceptada: devuelve (actor, contraparte, mediacion_id)."""
+    def crear():
+        from tests.test_invitaciones import _invitar, _token_de
+        actor, otra, cid = conflicto_orientado()
+        mid = _invitar(actor, otra, cid)
+        assert otra.post(f"/invitaciones/{_token_de(owner, mid)}/responder", {"acepta": True}).status_code == 200
+        return actor, otra, mid
     return crear

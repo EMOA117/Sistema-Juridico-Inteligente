@@ -105,6 +105,8 @@ export interface Mediacion {
   tiene_mediador: boolean;
   invitacion: { estado: string; fecha_limite: string } | null;
   partes: { rol: string; nombre: string }[];
+  mediador: { nombre: string; num_certificacion: string } | null;
+  sesiones: SesionMediacion[];
   mensajes: Mensaje[];
   propuestas: Propuesta[];
 }
@@ -184,4 +186,41 @@ export interface Aviso {
   entidad_id: string;
   creado_en: string;
   leida_en: string | null;
+}
+
+export interface SesionMediacion {
+  id: string;
+  mediacion_id?: string;
+  folio?: string;
+  inicio: string;
+  duracion_min: number;
+  modalidad: 'VIDEOLLAMADA_CONJUNTA' | 'SESION_PRIVADA' | 'TELEFONICA';
+  enlace: string | null;
+  estado: 'PROGRAMADA' | 'CANCELADA' | 'REALIZADA';
+}
+
+export interface Convenio {
+  id: string;
+  tipo: 'TOTAL' | 'PARCIAL';
+  terminos: string;
+  puntos_pendientes: string[];
+  formalizado_en: string | null;
+  hash_sha256: string | null;
+  documento_id: string | null;
+  folio: string;
+  materia: Materia;
+  estado_mediacion: EstadoMediacion;
+  mediador: { nombre: string; num_certificacion: string } | null;
+  partes: { nombre: string; rol: string; aprobo: boolean; soy_yo: boolean }[];
+  aprobado_por_todas: boolean;
+}
+
+export interface MediadorPadron {
+  usuario_id: string;
+  nombre: string;
+  num_certificacion: string;
+  especialidades: Materia[];
+  max_casos: number;
+  activo: boolean;
+  mediaciones_activas: number;
 }

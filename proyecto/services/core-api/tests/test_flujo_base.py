@@ -63,3 +63,15 @@ def test_flujo_judicial_completo_y_juez_ajeno(conflicto_orientado, crear_usuario
 
 def test_ciudadano_no_usa_portal_administrativo(crear_usuario):
     assert crear_usuario().get("/admin/indicadores").status_code == 403
+
+
+def test_respuesta_a_propuesta_sin_modificar_contenido(negociacion, owner):
+    actor, otra, mid = negociacion()
+    otra.post(f"/mediaciones/{mid}/propuestas", {"texto": "Pago en dos partes"})
+    pid = actor.get(f"/mediaciones/{mid}").json()["propuestas"][0]["id"]
+    assert otra.post(f"/mediaciones/propuestas/{pid}/responder", {"estado": "ACEPTADA"}).status_code == 422  # el autor no responde
+    assert actor.post(f"/mediaciones/propuestas/{pid}/responder", {"estado": "RECHAZADA"}).status_code == 200
+    with pytest.raises(psycopg.errors.InsufficientPrivilege):
+        with owner.transaction():
+            owner.execute("SET LOCAL ROLE rol_app_odr")
+            owner.execute("UPDATE schema_odr.propuesta SET contenido_cifrado='\\x00' WHERE id=%s", (pid,))

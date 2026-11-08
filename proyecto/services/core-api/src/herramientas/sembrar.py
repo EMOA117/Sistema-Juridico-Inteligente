@@ -70,6 +70,10 @@ def main() -> None:
         c.execute("INSERT INTO schema_judicial.juez_adscripcion VALUES (%s,%s,'CIVIL'), (%s,%s,'FAMILIAR')",
                   (ids["juez.civil@demo.test"], civil, ids["juez.familiar@demo.test"], familiar))
 
+        c.execute("INSERT INTO schema_odr.mediador (usuario_id, num_certificacion, especialidades) VALUES"
+                  " (%s,'CJA-0482',ARRAY['CIVIL','FAMILIAR']), (%s,'CJA-0517',ARRAY['FAMILIAR'])",
+                  (ids["mediadora@demo.test"], ids["mediador@demo.test"]))
+
         ana, carlos, lucia = ids["ana@demo.test"], ids["carlos@demo.test"], ids["lucia@demo.test"]
 
         # Escenario 1: préstamo civil en negociación (Ana vs. Carlos).

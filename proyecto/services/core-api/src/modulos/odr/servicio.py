@@ -49,6 +49,9 @@ def detalle(p: Principal, mediacion_id: UUID) -> dict:
                         " ORDER BY creado_en DESC LIMIT 1", (mediacion_id,)).fetchone()
         partes = c.execute("SELECT rol, nombre FROM nucleo_comun.parte WHERE conflicto_id=%s ORDER BY rol DESC",
                            (m["conflicto_id"],)).fetchall()
+        mediador = c.execute("SELECT * FROM schema_odr.mediador_publico(%s)", (mediacion_id,)).fetchone() if m["mediador_id"] else None
+        sesiones = c.execute("SELECT id, inicio, duracion_min, modalidad, enlace, estado FROM schema_odr.sesion_mediacion"
+                             " WHERE mediacion_id=%s AND estado='PROGRAMADA' ORDER BY inicio", (mediacion_id,)).fetchall()
 
     def autor(uid):
         return "yo" if uid == p.usuario_id else ("mediador" if uid == m["mediador_id"] else "otra_parte")
@@ -57,7 +60,8 @@ def detalle(p: Principal, mediacion_id: UUID) -> dict:
         "id": str(m["id"]), "folio": m["folio"], "materia": m["materia"], "estado": m["estado"],
         "resultado": m["resultado"], "conflicto_id": str(m["conflicto_id"]),
         "soy_mediador": m["mediador_id"] == p.usuario_id, "tiene_mediador": m["mediador_id"] is not None,
-        "invitacion": inv, "partes": partes,
+        "invitacion": inv, "partes": partes, "mediador": mediador,
+        "sesiones": [{**x, "id": str(x["id"])} for x in sesiones],
         "mensajes": [{"id": str(x["id"]), "autor": autor(x["autor_id"]), "nombre": nombres.get(x["autor_id"], "Mediador"),
                       "texto": descifrar(x["contenido_cifrado"], f"mensaje:{mediacion_id}"), "fecha": x["creado_en"]} for x in msgs],
         "propuestas": [{"id": str(x["id"]), "numero": i + 1, "autor": autor(x["autor_id"]), "estado": x["estado"],

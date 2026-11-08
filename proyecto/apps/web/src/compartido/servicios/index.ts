@@ -1,6 +1,6 @@
 // Un objeto por módulo de core-api. Las rutas coinciden con los routers de FastAPI.
 import type {
-  Aviso, CargaJuez, Conflicto, Demanda, Expediente, ExpedienteResumen, Indicadores, Mediacion, MediacionResumen,
+  Aviso, CargaJuez, Convenio, MediadorPadron, SesionMediacion, Conflicto, Demanda, Expediente, ExpedienteResumen, Indicadores, Mediacion, MediacionResumen,
   Materia, Orientacion, Parte, RespuestaLogin, Usuario,
 } from '@/compartido/tipos';
 import { get, patch, post, put } from './api';
@@ -52,6 +52,19 @@ export const odr = {
   responder: (propuestaId: string, estado: 'ACEPTADA' | 'RECHAZADA') =>
     post(`/mediaciones/propuestas/${propuestaId}/responder`, { estado }),
   terminar: (id: string, resultado: 'SIN_ACUERDO' | 'DESISTIMIENTO') => post(`/mediaciones/${id}/terminar`, { resultado }),
+  solicitarMediador: (id: string) => post<{ nombre: string; num_certificacion: string }>(`/mediaciones/${id}/solicitar-mediador`),
+  sesiones: (id: string) => get<SesionMediacion[]>(`/mediaciones/${id}/sesiones`),
+  programarSesion: (id: string, datos: { inicio: string; duracion_min: number; modalidad: string; enlace?: string }) =>
+    post(`/mediaciones/${id}/sesiones`, datos),
+  cambiarSesion: (sesionId: string, estado: 'CANCELADA' | 'REALIZADA') => post(`/mediaciones/sesiones/${sesionId}/estado`, { estado }),
+  agenda: () => get<SesionMediacion[]>('/mediador/agenda'),
+  notas: (id: string) => get<{ id: string; texto: string; creado_en: string }[]>(`/mediaciones/${id}/notas`),
+  agregarNota: (id: string, texto: string) => post(`/mediaciones/${id}/notas`, { texto }),
+  concluir: (id: string, resultado: 'SIN_ACUERDO' | 'DESISTIMIENTO' | 'NO_ACEPTADA') => post(`/mediaciones/${id}/concluir`, { resultado }),
+  convenio: (id: string) => get<Convenio | null>(`/mediaciones/${id}/convenio`),
+  redactarConvenio: (id: string, datos: { tipo: 'TOTAL' | 'PARCIAL'; terminos: string; puntos_pendientes: string[] }) =>
+    put(`/mediaciones/${id}/convenio`, datos),
+  aprobarConvenio: (id: string) => post(`/mediaciones/${id}/convenio/aprobar`),
 };
 
 export const judicial = {
@@ -73,4 +86,12 @@ export const administracion = {
   carga: () => get<CargaJuez[]>('/admin/carga-jueces'),
   asignar: (expedienteId: string, juez_id: string) => post(`/admin/expedientes/${expedienteId}/asignar`, { juez_id }),
   indicadores: () => get<Indicadores>('/admin/indicadores'),
+  padronMediadores: () => get<{
+    mediadores: MediadorPadron[];
+    sin_registro: { id: string; nombre: string; correo: string }[];
+    asignaciones: { mediacion_id: string; folio: string; materia: Materia; estado: string; mediador_id: string | null; mediador: string | null; solicitado_en: string | null }[];
+  }>('/admin/mediadores'),
+  registrarMediador: (usuarioId: string, datos: { num_certificacion: string; especialidades: Materia[]; max_casos: number; activo: boolean }) =>
+    put(`/admin/mediadores/${usuarioId}`, datos),
+  reasignar: (mediacionId: string, mediador_id: string) => post(`/admin/asignaciones/${mediacionId}`, { mediador_id }),
 };

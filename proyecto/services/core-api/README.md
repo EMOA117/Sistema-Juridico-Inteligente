@@ -25,6 +25,8 @@ La documentación interactiva queda en <http://localhost:8000/docs>.
 | `judicial` | `app_judicial` | demanda, confirmación, expediente, dictamen, corrección |
 | `administracion` | `app_admin` | turno, carga de jueces, juzgados, indicadores agregados |
 | `odr.invitaciones` | `app_odr`, `app_auth` | `POST /conflictos/{id}/mediacion` (token de 43 caracteres, solo se guarda su SHA-256), `GET /invitaciones/{token}`, `POST /invitaciones/{token}/responder` |
+| `odr.mediadores` | `app_odr`, `app_admin` | `POST /mediaciones/{id}/solicitar-mediador` (asignación automática por especialidad y menor carga, en `schema_odr.asignar_mediador`), sesiones, notas cifradas, `POST /mediaciones/{id}/concluir`, `GET /mediador/agenda`, `GET/PUT /admin/mediadores`, `POST /admin/asignaciones/{id}` |
+| `odr.convenio` | `app_odr` | `GET/PUT /mediaciones/{id}/convenio` (editar reinicia aprobaciones), `POST /mediaciones/{id}/convenio/aprobar` |
 | `notificaciones` | `app_nucleo` | `GET /notificaciones`, `POST /notificaciones/leidas` |
 
 Algunas funciones (`clasificador`, `generador_borrador`, `despues_de_*`) son **puntos de extensión**. Ahí se conectan las notificaciones y el servicio de IA sin cambiar las reglas del flujo.
