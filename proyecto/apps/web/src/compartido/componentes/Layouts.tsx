@@ -73,7 +73,7 @@ export function LayoutInstitucional({ portal, enlaces }: { portal: string; enlac
           <button type="button" className="boton secundario" style={{ marginTop: 12, minHeight: 40 }} onClick={() => { salir(); navegar('/login'); }}>Cerrar sesión</button>
         </div>
       </nav>
-      <main><Outlet /></main>
+      <main>{(usuario?.rol === 'JUEZ' || usuario?.rol === 'ADMINISTRADOR') && <p className="aviso-confidencial">Vista previa con datos simulados. Esta iteración implementa ODR; las acciones judiciales y los indicadores de este portal todavía no están conectados.</p>}<Outlet /></main>
     </div>
   );
 }

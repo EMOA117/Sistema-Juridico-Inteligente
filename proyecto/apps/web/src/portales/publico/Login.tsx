@@ -1,6 +1,6 @@
 // P1 · Inicio de sesión: ciudadano (correo + contraseña) e institucional (MFA obligatorio).
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { IconoCandado, IconoFlecha, Logo } from '@/compartido/componentes';
 import { identidad } from '@/compartido/servicios';
 import { useSesion } from '@/compartido/servicios/sesion';
@@ -53,7 +53,7 @@ export default function Login() {
             continúa a la vía judicial sin empezar de cero.
           </p>
         </div>
-        <span className="pequeno" style={{ color: '#AEB8C7' }}>Conexión protegida · Datos sintéticos de demostración</span>
+        <span className="pequeno" style={{ color: '#AEB8C7' }}>Entorno local · Datos sintéticos de demostración</span>
       </aside>
 
       <main style={{ flex: '1 1 520px', padding: '48px 56px', display: 'flex', flexDirection: 'column', gap: 24, justifyContent: 'center' }}>
@@ -62,8 +62,7 @@ export default function Login() {
         <form className="tarjeta" aria-labelledby="h-ciu" onSubmit={(e) => acceder(e, 'CIUDADANO')} noValidate>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 12 }}>
             <h2 id="h-ciu" className="titulo-serif" style={{ fontSize: 32 }}>Entra a tu cuenta</h2>
-            {/* TODO: pantalla de registro ciudadano */}
-            <span className="texto-2">¿Primera vez? <a href="#">Crea una cuenta</a></span>
+            <span className="texto-2">¿Primera vez? <Link to="/registro">Crea una cuenta</Link></span>
           </div>
           <div className="campo">
             <label htmlFor="c-mail">Correo electrónico</label>
@@ -79,7 +78,7 @@ export default function Login() {
             </div>
           </div>
           <button type="submit" className="boton bloque" disabled={enviando}>Entrar <IconoFlecha /></button>
-          <span className="pequeno texto-2">Por seguridad, tu sesión se cierra tras 15 minutos sin actividad.</span>
+          <span className="pequeno texto-2">La sesión expira 15 minutos después del acceso. Guarda tus cambios antes de salir.</span>
         </form>
 
         <form className="tarjeta suave" aria-labelledby="h-inst" onSubmit={(e) => acceder(e, perfil)} noValidate>

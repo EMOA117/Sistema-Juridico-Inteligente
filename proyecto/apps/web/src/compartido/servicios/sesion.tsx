@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { http } from './api';
 import type { Usuario } from '@/compartido/tipos';
 
 interface Sesion {
@@ -13,7 +14,7 @@ const Ctx = createContext<Sesion | null>(null);
 export function ProveedorSesion({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<Usuario | null>(() => {
     const guardado = sessionStorage.getItem('usuario');
-    return guardado ? (JSON.parse(guardado) as Usuario) : null;
+    try { return guardado ? (JSON.parse(guardado) as Usuario) : null; } catch { return null; }
   });
 
   const entrar = (u: Usuario) => {
@@ -21,10 +22,19 @@ export function ProveedorSesion({ children }: { children: ReactNode }) {
     setUsuario(u);
   };
   const salir = () => {
-    sessionStorage.clear();
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('usuario');
     setUsuario(null);
   };
 
+  useEffect(() => {
+    const expirar = () => { sessionStorage.removeItem('token'); sessionStorage.removeItem('usuario'); setUsuario(null); };
+    window.addEventListener('sesion-expirada', expirar);
+    if (sessionStorage.getItem('token')) {
+      http<Usuario>('/auth/me').then(setUsuario).catch(() => { /* Un fallo de red no borra credenciales. */ });
+    } else expirar();
+    return () => window.removeEventListener('sesion-expirada', expirar);
+  }, []);
   return <Ctx.Provider value={{ usuario, entrar, salir }}>{children}</Ctx.Provider>;
 }
 

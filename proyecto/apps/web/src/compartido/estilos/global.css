@@ -30,6 +30,23 @@
 }
 
 * { box-sizing: border-box; }
+.odr-entre { justify-content: space-between; align-items: center; }
+.odr-estrecho { max-width: 960px !important; }
+.odr-dos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.odr-dos fieldset { min-width: 0; border: 1px solid var(--linea); padding: 20px; border-radius: 8px; }
+.odr-dos fieldset .campo { margin-bottom: 12px; }
+.odr-error { background: var(--bermellon-tinte); color: var(--bermellon); border-left: 4px solid var(--bermellon); padding: 16px; border-radius: 4px; }
+.odr-texto { white-space: pre-wrap; overflow-wrap: anywhere; }
+.odr-hash { overflow-wrap: anywhere; }
+.odr-check { display: flex; gap: 12px; align-items: flex-start; }
+.odr-check input { flex: 0 0 20px; width: 20px; height: 20px; margin-top: 3px; }
+.odr-chat { display: flex; flex-direction: column; gap: 12px; max-height: 480px; overflow-y: auto; padding: 8px; }
+.odr-burbuja { align-self: flex-start; max-width: 90%; background: var(--gris-suave); padding: 14px; border-radius: 8px; }
+.odr-burbuja.propia { align-self: flex-end; background: var(--jade-tinte); }
+.odr-propuesta, .odr-aviso { border-bottom: 1px solid var(--linea); padding-bottom: 16px; }
+.odr-ejemplo { background: var(--laton-tinte); border-left: 4px solid var(--laton); padding: 20px; }
+.odr-sala .tarjeta { min-width: 0; }
+@media (max-width: 800px) { .odr-dos { grid-template-columns: 1fr; } .odr-sala .tarjeta { padding: 16px; } }
 body {
   margin: 0;
   background: var(--cal);
@@ -124,6 +141,7 @@ p { margin: 0; }
 
 .estado { display: inline-block; white-space: nowrap; font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
 .estado.aceptada { background: var(--jade-tinte); color: var(--jade); }
+.estado.odr-resultado { white-space: normal; border-radius: 8px; padding: 12px; }
 .estado.pendiente { background: var(--ocre-tinte); color: var(--ocre); }
 .estado.rechazada { background: var(--bermellon-tinte); color: var(--bermellon); }
 .estado.tramite { background: var(--toga-tinte); color: var(--toga); }
@@ -165,6 +183,10 @@ p { margin: 0; }
 .riel.judicial .marca-paso { border-radius: 3px; border-color: var(--toga); }
 .riel.judicial .paso.hecho .marca-paso, .riel.judicial .paso.actual .marca-paso { background: var(--toga); }
 .riel.judicial .tramo { background: var(--toga); }
+@media (max-width: 480px) {
+  .riel .paso { width: calc((100% - 48px) / 4); font-size: 11px; }
+  .riel .tramo { flex: 0 0 16px; min-width: 16px; }
+}
 
 .avatar { width: 36px; height: 36px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--laton); color: var(--tinta); font-weight: 700; font-size: 14px; }
 

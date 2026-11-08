@@ -1,14 +1,14 @@
-// Un servicio por módulo de core-api. Cada función tiene su TODO con el endpoint esperado.
+// Identidad real y servicios heredados de las vistas previas. ODR usa ./odr.ts.
 import * as mock from '@/compartido/datos/mock';
 import type { Rol, Usuario } from '@/compartido/tipos';
 import { http, simular, USAR_MOCKS } from './api';
 
 export const identidad = {
-  // TODO: POST /auth/login  { correo, contrasena, codigo_mfa? } -> { token, usuario }
-  async iniciarSesion(correo: string, _contrasena: string, rol: Rol, _mfa?: string): Promise<Usuario> {
-    if (!USAR_MOCKS) return http<Usuario>('/auth/login', { method: 'POST', body: JSON.stringify({ correo, contrasena: _contrasena, codigo_mfa: _mfa }) });
-    const clave = { CIUDADANO: 'ciudadano', MEDIADOR: 'mediador', JUEZ: 'juez', ADMINISTRADOR: 'admin' }[rol];
-    return simular({ ...mock.usuarios[clave], correo: correo || mock.usuarios[clave].correo });
+  // El servidor determina el rol y verifica TOTP institucional.
+  async iniciarSesion(correo: string, _contrasena: string, _rol: Rol, _mfa?: string): Promise<Usuario> {
+    const sesion = await http<{ token: string; usuario: Usuario }>('/auth/login', { method: 'POST', body: JSON.stringify({ correo, contrasena: _contrasena, codigo_mfa: _mfa || null }) });
+    sessionStorage.setItem('token', sesion.token);
+    return sesion.usuario;
   },
 };
 

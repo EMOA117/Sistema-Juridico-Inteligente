@@ -1,0 +1,73 @@
+import { test, expect, type Page } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
+
+test('dos partes negocian y formalizan un convenio total persistente', async ({ browser }, testInfo) => {
+  const contextoA=await browser.newContext();
+  const contextoB=await browser.newContext();
+  const a=await contextoA.newPage(), b=await contextoB.newPage();
+  const sufijo=randomUUID().slice(0,8), correoA=`solicitante-${sufijo}@example.test`, correoB=`contraparte-${sufijo}@example.test`;
+  const errores:string[]=[];
+  a.on('pageerror',e=>errores.push(e.message)); b.on('pageerror',e=>errores.push(e.message));
+  async function registrar(p:Page,nombre:string,correo:string) {
+    await p.goto('/registro');
+    await p.getByLabel('Nombre',{exact:true}).fill(nombre);
+    await p.getByLabel('Correo',{exact:true}).fill(correo);
+    await p.getByLabel('Contraseña (mínimo 12 caracteres)').fill('Prueba-navegador-2026!');
+    await p.getByRole('button',{name:'Crear cuenta',exact:true}).click();
+    await expect(p).toHaveURL(/\/ciudadano$/);
+  }
+  try {
+    await registrar(a,'Solicitante sintético',correoA);
+    await a.getByRole('link',{name:'Nuevo asunto',exact:true}).click();
+    await a.getByLabel('Título del asunto').fill('Calendario de pago sintético');
+    await a.getByLabel('Domicilio para notificaciones',{exact:true}).fill('Calle sintética 100');
+    await a.getByLabel('Nombre de la contraparte').fill('Contraparte sintética');
+    await a.getByLabel('Correo de la contraparte').fill(correoB);
+    await a.getByLabel('Domicilio de la contraparte').fill('Calle sintética 200');
+    await a.getByRole('button',{name:'Guardar partes y continuar'}).click();
+    await a.getByLabel('Describe los hechos iniciales').fill('Existe un adeudo de renta y queremos acordar un calendario de pago voluntario.');
+    await a.getByRole('checkbox').check();
+    await a.getByRole('button',{name:'Guardar orientación y elegir ruta'}).click();
+    await expect(a).toHaveURL(/\/negociacion\//);
+    const sala=a.url();
+    await a.getByRole('button',{name:'Invitar a mediación'}).click();
+    await expect(a.getByRole('heading',{name:'Invitación pendiente'})).toBeVisible();
+    await registrar(b,'Contraparte sintética',correoB);
+    await b.goto(sala);
+    b.once('dialog',d=>d.accept());
+    await b.getByRole('button',{name:'Aceptar invitación'}).click();
+    await expect(a.getByLabel('Tu mensaje')).toBeVisible();
+    await a.getByLabel('Tu mensaje').fill('Propongo revisar juntos un calendario.');
+    await a.getByRole('button',{name:'Enviar mensaje',exact:true}).click();
+    await expect(b.getByText('Propongo revisar juntos un calendario.')).toBeVisible();
+    await a.getByLabel('Términos propuestos').fill('Pagar en tres exhibiciones de 500 pesos.');
+    await a.getByLabel('Monto en MXN (opcional)').fill('1500');
+    await a.getByRole('button',{name:'Enviar propuesta',exact:true}).click();
+    await expect(b.getByRole('button',{name:'Aceptar propuesta',exact:true})).toBeVisible();
+    b.once('dialog',d=>d.accept());
+    await b.getByRole('button',{name:'Aceptar propuesta',exact:true}).click();
+    await a.getByLabel('Términos acordados para revisión').fill('Las partes acuerdan tres pagos sintéticos de 500 pesos, los días 5 de cada mes.');
+    await a.getByLabel('Revisé los términos y la separación de los puntos pendientes.').check();
+    await a.getByRole('button',{name:'Generar borrador de convenio'}).click();
+    await expect(a.getByRole('heading',{name:'Versión para aceptación'})).toBeVisible();
+    const descarga=a.waitForEvent('download');
+    await a.getByRole('button',{name:'Descargar PDF para revisión'}).click();
+    await (await descarga).saveAs(testInfo.outputPath('convenio.pdf'));
+    await a.getByLabel('Revisé esta versión y acepto sus términos para la demostración.').check();
+    a.once('dialog',d=>d.accept());
+    await a.getByRole('button',{name:'Registrar aceptación de demostración'}).click();
+    await expect(b.getByRole('heading',{name:'Versión para aceptación'})).toBeVisible();
+    await b.getByLabel('Revisé esta versión y acepto sus términos para la demostración.').check();
+    b.once('dialog',d=>d.accept());
+    await b.getByRole('button',{name:'Registrar aceptación de demostración'}).click();
+    await expect(b.getByText('Formalización de demostración completada.',{exact:false})).toBeVisible();
+    await a.reload();
+    await expect(a.getByText('Formalización de demostración completada.',{exact:false})).toBeVisible();
+    await expect(a.getByRole('button',{name:'Enviar mensaje',exact:true})).toHaveCount(0);
+    await a.screenshot({path:testInfo.outputPath('sala-escritorio.png'),fullPage:true});
+    await a.setViewportSize({width:390,height:844});
+    await a.screenshot({path:testInfo.outputPath('sala-movil.png'),fullPage:true});
+    expect(await a.evaluate(()=>document.documentElement.scrollWidth <= window.innerWidth)).toBeTruthy();
+    expect(errores).toEqual([]);
+  } finally { await contextoA.close(); await contextoB.close(); }
+});

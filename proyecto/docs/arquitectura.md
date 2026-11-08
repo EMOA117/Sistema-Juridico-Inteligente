@@ -1,5 +1,9 @@
 # Revisión inicial de la arquitectura
 
+## Estado de implementación
+
+La [primera iteración ODR](odr-primera-iteracion.md) ya implementa API HTTP, identidad local con TOTP, persistencia y pantallas conectadas. Las secciones de revisión inicial siguientes describen la secuencia y la arquitectura objetivo; consulta la guía ODR para distinguir capacidades actuales de firma/IA/infraestructura pendientes.
+
 ## Veredicto
 
 La arquitectura propuesta **sí sirve como base del MVP civil y familiar**. La división entre aplicación web, núcleo transaccional modular y servicio interno de IA es coherente con el recorrido completo: captura, análisis, mediación, canalización, demanda, contestación y resolución. Mantener los módulos jurídicos dentro de un solo `core-api` facilita transacciones y evita distribuir prematuramente el flujo de un expediente. El primer despliegue será una demostración local para ESCOM con datos sintéticos.

@@ -4,14 +4,15 @@ import { LayoutInstitucional, RutaProtegida } from '@/compartido/componentes/Lay
 import { Cargando } from '@/compartido/componentes';
 import { useSesion } from '@/compartido/servicios/sesion';
 import Login from '@/portales/publico/Login';
+import Registro from '@/portales/publico/Registro';
 
 // Carga diferida por pantalla (RNF2.2: code-splitting).
-const MisAsuntos = lazy(() => import('@/portales/ciudadano/MisAsuntos'));
-const Orientacion = lazy(() => import('@/portales/ciudadano/Orientacion'));
-const SalaNegociacion = lazy(() => import('@/portales/ciudadano/SalaNegociacion'));
-const DemandaAsistida = lazy(() => import('@/portales/ciudadano/DemandaAsistida'));
-const Convenio = lazy(() => import('@/portales/ciudadano/Convenio'));
-const PortalMediador = lazy(() => import('@/portales/mediador/PortalMediador'));
+const MisAsuntos = lazy(() => import('@/portales/odr/Asuntos'));
+const Orientacion = lazy(() => import('@/portales/odr/Captura'));
+const SalaNegociacion = lazy(() => import('@/portales/odr/Sala'));
+const DemandaAsistida = SalaNegociacion;
+const Convenio = SalaNegociacion;
+const PortalMediador = MisAsuntos;
 const BandejaJuez = lazy(() => import('@/portales/juez/BandejaJuez'));
 const BusquedaSemantica = lazy(() => import('@/portales/juez/BusquedaSemantica'));
 const TableroIndicadores = lazy(() => import('@/portales/administracion/TableroIndicadores'));
@@ -29,6 +30,7 @@ function Inicio() {
 export const router = createBrowserRouter([
   { path: '/', element: <Inicio /> },
   { path: '/login', element: <Login /> },
+  { path: '/registro', element: <Registro /> },
   {
     path: '/ciudadano',
     element: <RutaProtegida rol="CIUDADANO" />,
@@ -47,7 +49,7 @@ export const router = createBrowserRouter([
       element: <LayoutInstitucional portal="Mediación · CJA" enlaces={[
         { a: '/mediador', texto: 'Mis mediaciones' },
       ]} />,
-      children: [{ index: true, element: conCarga(<PortalMediador />) }],
+      children: [{ index: true, element: conCarga(<PortalMediador />) }, { path: 'negociacion/:folio', element: conCarga(<SalaNegociacion />) }],
     }],
   },
   {
