@@ -170,6 +170,10 @@ p { margin: 0; }
 .riel.judicial .marca-paso { border-radius: 3px; border-color: var(--toga); }
 .riel.judicial .paso.hecho .marca-paso, .riel.judicial .paso.actual .marca-paso { background: var(--toga); }
 .riel.judicial .tramo { background: var(--toga); }
+@media (max-width: 480px) {
+  .riel .paso { width: calc((100% - 48px) / 4); font-size: 11px; }
+  .riel .tramo { flex: 0 0 16px; min-width: 16px; }
+}
 
 .avatar { width: 36px; height: 36px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--laton); color: var(--tinta); font-weight: 700; font-size: 14px; }
 
