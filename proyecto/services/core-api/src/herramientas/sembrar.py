@@ -36,7 +36,9 @@ USUARIOS = [
 
 def conectar() -> psycopg.Connection:
     env = dict(l.split("=", 1) for l in (INFRA / ".env").read_text().splitlines() if "=" in l and not l.startswith("#"))
-    return psycopg.connect(host="localhost", port=5433, dbname="sji", user="sji_propietario",
+    from compartido.config import config
+    c = config()
+    return psycopg.connect(host=c.pg_host, port=c.pg_port, dbname=c.pg_db, user="sji_propietario",
                            password=env["PG_PROPIETARIO_PASSWORD"], row_factory=dict_row)
 
 
