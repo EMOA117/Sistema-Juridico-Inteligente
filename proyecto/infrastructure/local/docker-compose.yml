@@ -1,0 +1,41 @@
+# Entorno local de demostración (datos sintéticos). No es un despliegue de producción.
+name: sji
+services:
+  postgres:
+    image: postgres:16.4
+    environment:
+      POSTGRES_DB: sji
+      POSTGRES_USER: sji_propietario
+      POSTGRES_PASSWORD: ${PG_PROPIETARIO_PASSWORD}
+    ports: ["5433:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sji_propietario -d sji"]
+      interval: 3s
+      retries: 20
+
+  mongo:
+    # Incluye mongod + mongot para $vectorSearch (solo desarrollo y pruebas).
+    image: mongodb/mongodb-atlas-local:8.0.4
+    ports: ["27018:27017"]
+    volumes: [mongodata:/data/db, mongoconfig:/data/configdb]
+
+  mailpit:
+    image: axllent/mailpit:v1.21.8
+    ports: ["1025:1025", "8025:8025"]
+
+  objetos:
+    # RustFS: almacenamiento compatible con S3 (sustituto de MinIO) con Object Lock para WORM.
+    image: rustfs/rustfs:1.0.4
+    environment:
+      RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY}
+      RUSTFS_SECRET_KEY: ${S3_SECRET_KEY}
+      RUSTFS_CONSOLE_ENABLE: "true"
+    ports: ["9000:9000", "9001:9001"]
+    volumes: [objetosdata:/data]
+
+volumes:
+  pgdata:
+  mongodata:
+  mongoconfig:
+  objetosdata:

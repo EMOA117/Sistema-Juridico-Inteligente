@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link, NavLink, Navigate, Outlet, useNavigate } from 'react-router-dom';
 import { useSesion } from '@/compartido/servicios/sesion';
 import type { Rol } from '@/compartido/tipos';
+import { Campana } from './Campana';
 import { Logo } from './Iconos';
 
 /** Protege un portal por rol. La autorización real (RBAC + ABAC) la aplica core-api. */
@@ -25,17 +26,18 @@ export function EncabezadoCiudadano({ titulo, etiqueta, volverA, derecha }: {
     <header className="encabezado">
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         {volverA ? <Link to={volverA} aria-label="Volver">←</Link> : <Logo />}
-        <span className="marca">{titulo ?? 'Plataforma Jurídica Inteligente'}</span>
+        <span className="marca">{titulo ?? 'Sistema de Conciliación Inteligente'}</span>
         {etiqueta && <span className="etiqueta-portal">{etiqueta}</span>}
         {!titulo && (
           <nav aria-label="Principal">
             <NavLink to="/ciudadano" end className={({ isActive }) => (isActive ? 'activo' : '')}>Mis asuntos</NavLink>
-            <NavLink to="/ciudadano/orientacion" className={({ isActive }) => (isActive ? 'activo' : '')}>Nueva orientación</NavLink>
+            <NavLink to="/ciudadano/orientacion" className={({ isActive }) => (isActive ? 'activo' : '')}>Nueva asesoría</NavLink>
           </nav>
         )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {derecha}
+        {usuario && <Campana />}
         {usuario && <span className="avatar" aria-hidden="true">{iniciales(usuario.nombre)}</span>}
         <button type="button" className="boton secundario" style={{ minHeight: 40 }} onClick={() => { salir(); navegar('/login'); }}>Salir</button>
       </div>
@@ -52,12 +54,13 @@ export function LayoutInstitucional({ portal, enlaces }: { portal: string; enlac
   return (
     <div className="portal-lateral">
       <nav className="barra-lateral" aria-label={portal}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Logo />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'space-between' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}><Logo />
           <span style={{ display: 'flex', flexDirection: 'column' }}>
             <span className="marca">Concordia</span>
             <span className="mono pequeno" style={{ letterSpacing: '.12em', color: '#D9C08C' }}>{portal.toUpperCase()}</span>
-          </span>
+          </span></span>
+          <Campana alinear="izquierda" />
         </div>
         <div>
           {enlaces.map((e) => (

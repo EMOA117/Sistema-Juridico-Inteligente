@@ -49,6 +49,9 @@ p { margin: 0; }
 .pagina { min-height: 100vh; display: flex; flex-direction: column; }
 .contenedor { width: 100%; max-width: 1360px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
 .fila { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-start; }
+/* En móvil, un hijo con texto largo sin espacios (series de certificado, huellas) no debe ensanchar la página. */
+.fila > * { min-width: 0; max-width: 100%; }
+.mono { overflow-wrap: anywhere; }
 .columna { display: flex; flex-direction: column; gap: 12px; }
 .crece { flex: 1 1 0; min-width: 0; }
 
@@ -71,6 +74,7 @@ p { margin: 0; }
   flex: 0 0 260px; background: var(--tinta); color: var(--cal);
   border-right: 3px solid var(--laton);
   padding: 24px 16px; display: flex; flex-direction: column; gap: 24px;
+  min-height: 100vh; position: sticky; top: 0; align-self: flex-start;
 }
 .barra-lateral a { color: var(--cal); text-decoration: none; padding: 10px 12px; border-radius: var(--radio-control); display: block; font-weight: 600; }
 .barra-lateral a.activo { background: #1d2c44; box-shadow: inset 3px 0 0 var(--laton); }
@@ -116,6 +120,7 @@ p { margin: 0; }
   border: 1.5px solid currentColor; border-radius: var(--radio-control);
   font-family: var(--fuente-mono); font-size: 14px; font-weight: 600;
 }
+.tarjeta > .folio, .columna > .folio { align-self: flex-start; }
 .folio::before { content: ''; width: 8px; height: 8px; background: currentColor; }
 .folio.odr { color: var(--jade); }
 .folio.odr::before { border-radius: 50%; }
@@ -165,6 +170,10 @@ p { margin: 0; }
 .riel.judicial .marca-paso { border-radius: 3px; border-color: var(--toga); }
 .riel.judicial .paso.hecho .marca-paso, .riel.judicial .paso.actual .marca-paso { background: var(--toga); }
 .riel.judicial .tramo { background: var(--toga); }
+@media (max-width: 480px) {
+  .riel .paso { width: calc((100% - 48px) / 4); font-size: 11px; }
+  .riel .tramo { flex: 0 0 16px; min-width: 16px; }
+}
 
 .avatar { width: 36px; height: 36px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--laton); color: var(--tinta); font-weight: 700; font-size: 14px; }
 
@@ -175,6 +184,6 @@ p { margin: 0; }
 
 @media (max-width: 720px) {
   .encabezado, .portal-lateral > main { padding: 16px; }
-  .barra-lateral { flex-basis: 100%; border-right: 0; border-bottom: 3px solid var(--laton); }
+  .barra-lateral { flex-basis: 100%; border-right: 0; border-bottom: 3px solid var(--laton); min-height: auto; position: static; }
   .contenedor { padding: 16px; }
 }

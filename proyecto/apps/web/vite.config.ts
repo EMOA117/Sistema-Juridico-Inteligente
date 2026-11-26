@@ -12,6 +12,6 @@ export default defineConfig({
   server: {
     port: 5173,
     // core-api (FastAPI) en desarrollo local
-    proxy: { '/api': 'http://localhost:8000' },
+    proxy: { '/api': { target: 'http://localhost:8000', rewrite: (p) => p.replace(/^\/api/, '') } },
   },
 });

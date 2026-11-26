@@ -1,6 +1,6 @@
 // P1 · Inicio de sesión: ciudadano (correo + contraseña) e institucional (MFA obligatorio).
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { IconoCandado, IconoFlecha, Logo } from '@/compartido/componentes';
 import { identidad } from '@/compartido/servicios';
 import { useSesion } from '@/compartido/servicios/sesion';
@@ -10,12 +10,13 @@ const destinos: Record<Rol, string> = { CIUDADANO: '/ciudadano', MEDIADOR: '/med
 
 export default function Login() {
   const { entrar } = useSesion();
+  const [params] = useSearchParams();
   const navegar = useNavigate();
   const [verContrasena, setVerContrasena] = useState(false);
-  const [perfil, setPerfil] = useState<Exclude<Rol, 'CIUDADANO'>>('JUEZ');
   const [error, setError] = useState('');
   const [enviando, setEnviando] = useState(false);
 
+  // rol: 'CIUDADANO' para el acceso ciudadano; cualquier otro valor = acceso institucional.
   async function acceder(e: FormEvent<HTMLFormElement>, rol: Rol) {
     e.preventDefault();
     const datos = new FormData(e.currentTarget);
@@ -23,15 +24,19 @@ export default function Login() {
     const contrasena = String(datos.get('contrasena') ?? '');
     const mfa = String(datos.get('mfa') ?? '').replace(/\s/g, '');
     if (!correo || !contrasena) return setError('Escribe tu correo y contraseña.');
-    if (rol !== 'CIUDADANO' && !/^\d{6}$/.test(mfa)) return setError('El código MFA debe tener 6 dígitos.');
+    if (rol !== 'CIUDADANO' && mfa && !/^\d{6}$/.test(mfa)) return setError('El código MFA debe tener 6 dígitos.');
     setError('');
     setEnviando(true);
     try {
-      const usuario = await identidad.iniciarSesion(correo, contrasena, rol, mfa);
-      entrar(usuario);
-      navegar(destinos[usuario.rol]);
-    } catch {
-      setError('No pudimos iniciar sesión. Revisa tus datos.');
+      const r = await identidad.iniciarSesion(correo, contrasena, mfa);
+      if (rol === 'CIUDADANO' && r.usuario.rol !== 'CIUDADANO') return setError('Usa el acceso institucional.');
+      if (rol !== 'CIUDADANO' && r.usuario.rol === 'CIUDADANO') return setError('Usa el acceso ciudadano.');
+      entrar(r.token, r.usuario);
+      const volver = params.get('volver');
+      navegar(r.debe_cambiar_password ? '/cambiar-contrasena' : r.requiere_alta_mfa ? '/mfa'
+        : volver && volver.startsWith('/') && !volver.startsWith('//') ? volver : destinos[r.usuario.rol]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No pudimos iniciar sesión.');
     } finally {
       setEnviando(false);
     }
@@ -42,7 +47,7 @@ export default function Login() {
       <aside style={{ flex: '1 1 420px', background: 'var(--tinta)', color: 'var(--cal)', padding: '48px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 48, borderRight: '3px solid var(--laton)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <Logo />
-          <span className="marca" style={{ fontSize: 22 }}>Plataforma Jurídica Inteligente</span>
+          <span className="marca" style={{ fontSize: 22 }}>Sistema de Conciliación Inteligente</span>
         </div>
         <div className="columna" style={{ gap: 20, maxWidth: 520 }}>
           <h1 className="titulo-serif" style={{ fontSize: 'clamp(36px, 5vw, 56px)', lineHeight: 1.05 }}>
@@ -57,13 +62,15 @@ export default function Login() {
       </aside>
 
       <main style={{ flex: '1 1 520px', padding: '48px 56px', display: 'flex', flexDirection: 'column', gap: 24, justifyContent: 'center' }}>
+        {params.get('motivo') === 'inactividad' && !error && (
+          <p role="status" className="estado pendiente" style={{ alignSelf: 'flex-start' }}>Cerramos tu sesión por inactividad.</p>
+        )}
         {error && <p role="alert" className="estado rechazada" style={{ alignSelf: 'flex-start' }}>{error}</p>}
 
         <form className="tarjeta" aria-labelledby="h-ciu" onSubmit={(e) => acceder(e, 'CIUDADANO')} noValidate>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: 12 }}>
             <h2 id="h-ciu" className="titulo-serif" style={{ fontSize: 32 }}>Entra a tu cuenta</h2>
-            {/* TODO: pantalla de registro ciudadano */}
-            <span className="texto-2">¿Primera vez? <a href="#">Crea una cuenta</a></span>
+            <span className="texto-2">¿Primera vez? <Link to="/registro">Crea una cuenta</Link></span>
           </div>
           <div className="campo">
             <label htmlFor="c-mail">Correo electrónico</label>
@@ -82,19 +89,12 @@ export default function Login() {
           <span className="pequeno texto-2">Por seguridad, tu sesión se cierra tras 15 minutos sin actividad.</span>
         </form>
 
-        <form className="tarjeta suave" aria-labelledby="h-inst" onSubmit={(e) => acceder(e, perfil)} noValidate>
+        <form className="tarjeta suave" aria-labelledby="h-inst" onSubmit={(e) => acceder(e, 'JUEZ')} noValidate>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
             <h2 id="h-inst" style={{ fontSize: 17 }}>Acceso institucional</h2>
             <span className="mono pequeno texto-2" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}><IconoCandado />MFA OBLIGATORIO</span>
           </div>
-          <fieldset style={{ border: 0, padding: 0, margin: 0, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-            <legend className="solo-lector">Perfil</legend>
-            {([['JUEZ', 'Juez'], ['MEDIADOR', 'Mediador'], ['ADMINISTRADOR', 'Administrativo']] as const).map(([valor, texto]) => (
-              <label key={valor} style={{ display: 'flex', alignItems: 'center', gap: 6, minHeight: 44, fontWeight: 700 }}>
-                <input type="radio" name="perfil" checked={perfil === valor} onChange={() => setPerfil(valor)} />{texto}
-              </label>
-            ))}
-          </fieldset>
+          <p className="pequeno texto-2">Jueces, mediadores y administradores. Tu perfil se toma de tu cuenta institucional.</p>
           <div className="fila">
             <div className="campo crece" style={{ minWidth: 200 }}>
               <label htmlFor="i-mail">Correo institucional</label>
@@ -107,6 +107,7 @@ export default function Login() {
             <div className="campo" style={{ width: 160 }}>
               <label htmlFor="i-mfa">Código MFA</label>
               <input id="i-mfa" name="mfa" inputMode="numeric" maxLength={7} className="mono" />
+              <span className="ayuda">6 dígitos de Google Authenticator.</span>
             </div>
           </div>
           <button type="submit" className="boton secundario bloque" disabled={enviando}>Verificar y entrar</button>
