@@ -330,7 +330,131 @@ def main() -> None:
             estado = c.execute("SELECT numero, estado FROM schema_judicial.expediente WHERE id=%s", (eid,)).fetchone()
             print(f"  {estado['numero']:>8}  {caso['materia']:<9} {estado['estado']:<11} {caso['actor']}")
 
-    print(f"Listo: {len(CASOS)} expedientes. Cuentas nuevas en {CREDENCIALES}")
+        escenarios_usuarios_prueba(c, cliente, admin, jueces, ids_juez, token_invitacion)
+
+    print(f"Listo: {len(CASOS)} expedientes y {len(ESCENARIOS)} escenarios de cuentas de prueba. Credenciales en {CREDENCIALES}")
+
+
+# Asuntos de las cuentas de prueba (ana, carlos, lucia, mediadora, mediador) para que cada portal tenga trabajo visible.
+# La narrativa identifica el escenario: si ya existe, no se vuelve a crear.
+ESCENARIOS = [
+    dict(clave="mediacion_mediadora", actor="ana", otra="carlos", materia="CIVIL",
+         narrativa="Le vendí a un conocido mi bicicleta de montaña en $9,000; pagó $4,000 y quedó de liquidar el resto en un mes, "
+                   "pero ya pasaron tres y dice que la bicicleta tenía detalles que no le mencioné."),
+    dict(clave="mediacion_mediador", actor="lucia", otra="carlos", materia="FAMILIAR",
+         narrativa="Mi expareja y yo necesitamos acordar los horarios de convivencia de nuestro hijo durante las vacaciones de verano, "
+                   "porque cada quien quiere llevarlo de viaje en las mismas fechas."),
+    dict(clave="convenio_por_aprobar", actor="carlos", otra="ana", materia="MERCANTIL",
+         narrativa="Le surtí a un pequeño negocio 40 cajas de producto a crédito por $18,000 y solo me han pagado la mitad; "
+                   "queremos acordar un calendario de pagos sin dejar de trabajar juntos."),
+    dict(clave="convenio_firmado", actor="lucia", otra="ana", materia="CIVIL",
+         narrativa="Una vecina me pidió prestada mi lavadora durante un mes y me la devolvió con el motor dañado; la reparación "
+                   "cuesta $3,200 y queremos dividir el gasto."),
+    dict(clave="sin_acuerdo_a_juzgado", actor="ana", otra="lucia", materia="LABORAL",
+         narrativa="Trabajé ocho meses como asistente administrativa en un despacho y al terminar la relación no me pagaron "
+                   "vacaciones, prima vacacional ni la parte proporcional del aguinaldo."),
+    dict(clave="invitacion_pendiente", actor="lucia", otra="carlos", materia="CIVIL",
+         narrativa="Contraté a un conocido para pintar mi departamento, le adelanté $5,000 y dejó el trabajo a medias con manchas "
+                   "en el piso y los muebles."),
+    dict(clave="orientado", actor="ana", otra=None, materia="MERCANTIL",
+         narrativa="Compré mercancía para mi tienda en línea a un proveedor que me entregó piezas distintas a las de la factura y "
+                   "no responde a mis reclamos."),
+    dict(clave="prevenida_por_corregir", actor="lucia", otra=None, materia="FAMILIAR",
+         narrativa="El padre de mi hija no ha cubierto los gastos escolares acordados verbalmente desde el inicio del ciclo y "
+                   "necesito que se fije una pensión por escrito."),
+    dict(clave="concluida_por_mediador", actor="carlos", otra="lucia", materia="FAMILIAR",
+         narrativa="Mi hermana y yo no nos ponemos de acuerdo sobre quién cuida a nuestra madre los fines de semana ni cómo "
+                   "repartir los gastos de sus medicamentos."),
+]
+
+NOMBRES = {"ana": "Ana Pérez López", "carlos": "Carlos Méndez Ruiz", "lucia": "Lucía Torres Gómez"}
+
+
+def escenarios_usuarios_prueba(c, cliente, admin, jueces, ids_juez, token_invitacion) -> None:
+    from datetime import datetime, timezone
+    yo = {k: cliente(f"{k}@demo.test") for k in NOMBRES}
+    mediadora, mediador = cliente("mediadora@demo.test"), cliente("mediador@demo.test")
+    uid = lambda correo: str(c.execute("SELECT id FROM nucleo_comun.usuario WHERE correo=%s", (correo,)).fetchone()["id"])
+
+    def en_unos_dias(dias, hora):
+        d = datetime.now(timezone.utc).astimezone().replace(hour=hora, minute=0, second=0, microsecond=0)
+        return (d + timedelta(days=dias)).isoformat()
+
+    def propuesta_aceptada(mid, autor, otra, texto):
+        autor.post(f"/mediaciones/{mid}/propuestas", {"texto": texto})
+        pid = next(p["id"] for p in otra.get(f"/mediaciones/{mid}")["propuestas"] if p["estado"] == "PENDIENTE")
+        otra.post(f"/mediaciones/propuestas/{pid}/responder", {"estado": "ACEPTADA"})
+
+    def con_mediador(mid, actor, quien):
+        actor.post(f"/mediaciones/{mid}/solicitar-mediador")
+        admin.post(f"/admin/asignaciones/{mid}", {"mediador_id": uid(quien.correo)})
+
+    def a_juzgado(actor, cid, pretension, tipo, juez, decision, texto_dictamen):
+        did = actor.post(f"/conflictos/{cid}/canalizar")["demanda_id"]
+        texto = actor.post(f"/demandas/{did}/borrador", {"pretension": pretension, "tipo_juicio": tipo})["texto"]
+        eid = actor.post(f"/demandas/{did}/confirmar", {"texto": texto})["expediente_id"]
+        admin.post(f"/admin/expedientes/{eid}/asignar", {"juez_id": str(ids_juez[juez])})
+        jueces[juez].post(f"/expedientes/{eid}/dictamen", {"decision": decision, "texto": texto_dictamen})
+        return eid
+
+    for e in ESCENARIOS:
+        if c.execute("SELECT 1 FROM nucleo_comun.conflicto WHERE narrativa_inicial=%s", (e["narrativa"],)).fetchone():
+            print(f"  (ya existe) {e['clave']}")
+            continue
+        actor, otra = yo[e["actor"]], yo.get(e["otra"])
+        contraparte = ({"nombre": NOMBRES[e["otra"]], "correo": otra.correo} if otra else
+                       {"nombre": "Contraparte sintética", "correo": "contraparte@demo.test", "domicilio": "Calle Sintética 7, Col. Demo, CDMX"})
+        cid = actor.post("/conflictos", {"solicitante": {"nombre": NOMBRES[e["actor"]], "correo": actor.correo},
+                                         "contraparte": contraparte})["id"]
+        actor.put(f"/conflictos/{cid}/narrativa", {"narrativa": e["narrativa"]})
+        actor.post(f"/conflictos/{cid}/confirmar", {"materia": e["materia"]})
+        clave = e["clave"]
+
+        if otra:
+            mid = actor.post(f"/conflictos/{cid}/mediacion", {"plazo_dias": 10})["mediacion_id"]
+            if clave != "invitacion_pendiente":
+                otra.post(f"/invitaciones/{token_invitacion(mid)}/responder", {"acepta": True})
+                actor.post(f"/mediaciones/{mid}/mensajes", {"texto": "Gracias por aceptar. Me gustaría que lo resolviéramos pronto."})
+                otra.post(f"/mediaciones/{mid}/mensajes", {"texto": "De acuerdo, revisemos opciones que nos funcionen a ambos."})
+
+        if clave == "mediacion_mediadora":
+            con_mediador(mid, actor, mediadora)
+            mediadora.post(f"/mediaciones/{mid}/sesiones", {"inicio": en_unos_dias(2, 10), "modalidad": "VIDEOLLAMADA_CONJUNTA",
+                                                            "enlace": "https://meet.demo.test/sala-bicicleta"})
+            mediadora.post(f"/mediaciones/{mid}/notas", {"texto": "Ambas partes reconocen la venta; la diferencia está en el estado de la bicicleta. Explorar descuento por reparación."})
+        elif clave == "mediacion_mediador":
+            con_mediador(mid, actor, mediador)
+            mediador.post(f"/mediaciones/{mid}/sesiones", {"inicio": en_unos_dias(1, 17), "modalidad": "SESION_PRIVADA"})
+            mediador.post(f"/mediaciones/{mid}/notas", {"texto": "Proponer alternar quincenas de vacaciones y que el viaje se avise con un mes de anticipación."})
+        elif clave == "convenio_por_aprobar":
+            propuesta_aceptada(mid, actor, otra, "Pago del saldo de $9,000 en tres quincenas de $3,000")
+            actor.put(f"/mediaciones/{mid}/convenio", {"tipo": "TOTAL", "terminos":
+                      "La parte compradora pagará el saldo de $9,000 en tres pagos quincenales de $3,000 por transferencia, "
+                      "a partir del día 15 del mes en curso. El proveedor mantendrá el crédito vigente mientras se cumpla el calendario."})
+            actor.post(f"/mediaciones/{mid}/convenio/aprobar")
+        elif clave == "convenio_firmado":
+            propuesta_aceptada(mid, actor, otra, "Dividir al 50% el costo de la reparación de $3,200")
+            actor.put(f"/mediaciones/{mid}/convenio", {"tipo": "TOTAL", "terminos":
+                      "Las partes dividen en partes iguales el costo de reparación del motor de la lavadora, $1,600 cada una. "
+                      "La vecina entregará su parte en efectivo a más tardar el viernes siguiente a la firma."})
+            for parte in (actor, otra):
+                parte.post(f"/mediaciones/{mid}/convenio/aprobar")
+            for parte in (actor, otra):
+                parte.post(f"/mediaciones/{mid}/convenio/firmar", parte.cred())
+        elif clave == "sin_acuerdo_a_juzgado":
+            con_mediador(mid, actor, mediadora)
+            mediadora.post(f"/mediaciones/{mid}/notas", {"texto": "Sesión realizada. La parte empleadora niega la relación laboral; no hay base para acuerdo."})
+            mediadora.post(f"/mediaciones/{mid}/concluir", {"resultado": "SIN_ACUERDO"})
+            a_juzgado(actor, cid, "Pago de vacaciones, prima vacacional y aguinaldo proporcional", "Procedimiento ordinario laboral",
+                      "laboral", "ADMITIR", "La demanda reúne los requisitos legales; se admite y se ordena emplazar.")
+        elif clave == "prevenida_por_corregir":
+            a_juzgado(actor, cid, "Fijación de pensión alimenticia para gastos escolares", "Controversia del orden familiar",
+                      "familiar", "PREVENIR", "Precise el monto de los gastos escolares, la edad de la menor y exhiba comprobantes de pago.")
+        elif clave == "concluida_por_mediador":
+            con_mediador(mid, actor, mediador)
+            mediador.post(f"/mediaciones/{mid}/notas", {"texto": "Dos sesiones sin avance; las partes prefieren consultar a un abogado."})
+            mediador.post(f"/mediaciones/{mid}/concluir", {"resultado": "SIN_ACUERDO"})
+        print(f"  escenario {clave}")
 
 
 if __name__ == "__main__":

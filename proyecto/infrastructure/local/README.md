@@ -21,16 +21,10 @@ docker compose up -d
 
 `./init-db.sh --reiniciar` borra la base de demostración y la crea desde cero.
 
-Después, en `services/core-api`, se siembran los datos sintéticos:
+`init-db.sh` termina sembrando la demostración: PKI local (CA raíz y TSA sin validez legal), cuentas de prueba de todos los roles, expedientes en cada estado judicial y asuntos de mediación para las cuentas `ana`, `carlos`, `lucia`, `mediadora` y `mediador`. Con `SJI_SEMBRAR_DEMO=true` en `services/core-api/.env`, core-api repite esa revisión al arrancar y siembra solo lo que falte. Para hacerlo a mano, en `services/core-api/src`:
 
 ```bash
-uv run python -m herramientas.sembrar
-```
-
-Después, en `services/core-api`, se crea la PKI de demostración (CA raíz y TSA locales, sin validez legal):
-
-```bash
-uv run python -m herramientas.pki_init
+uv run --project .. python -m herramientas.semilla
 ```
 
 El script de siembra genera contraseñas y secretos TOTP aleatorios para las cuentas demo y los guarda en `credenciales-demo.txt`. Ese archivo está ignorado por git y no debe compartirse.
@@ -66,14 +60,10 @@ Requisitos: Docker Desktop (con WSL 2), Python 3.12+ con [`uv`](https://docs.ast
 cd proyecto/infrastructure/local
 Copy-Item .env.example .env          # y cambia las contraseñas
 docker compose up -d
-bash ./init-db.sh                    # desde Git Bash o WSL
-
-cd ../../services/core-api
-uv run python -m herramientas.sembrar
-uv run python -m herramientas.pki_init
+bash ./init-db.sh                    # desde Git Bash o WSL; al final siembra la demostración
 
 ollama pull qwen2.5:7b; ollama pull bge-m3
-cd ../ia-service; uv run python ../../persistence/mongo/inicializar.py
+cd ../../services/ia-service; uv run python ../../persistence/mongo/inicializar.py
 ```
 
 Arranque diario, una terminal de PowerShell por proceso:

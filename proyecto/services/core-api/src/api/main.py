@@ -1,5 +1,8 @@
 """Núcleo transaccional (core-api). Ejecutar: uvicorn api.main:app --app-dir src --port 8000"""
+import subprocess
+import sys
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,6 +25,9 @@ ROUTERS = [identidad, personal, orientacion, odr, invitaciones, canalizacion, ju
 
 @asynccontextmanager
 async def ciclo(_: FastAPI):
+    if config().sembrar_demo:
+        # Proceso aparte: la siembra recorre la API con su propia configuración y no bloquea el arranque.
+        subprocess.Popen([sys.executable, "-m", "herramientas.semilla"], cwd=Path(__file__).resolve().parents[1])
     yield
     cerrar_pools()
 
