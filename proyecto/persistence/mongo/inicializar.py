@@ -19,7 +19,7 @@ from compartido.ollama import embeddings  # noqa: E402
 from ingesta_conocimiento.servicio import ingerir  # noqa: E402
 
 CORPUS = Path(__file__).parent / "corpus"
-MATERIAS = {"enum": ["CIVIL", "FAMILIAR"]}
+MATERIAS = {"enum": ["CIVIL", "FAMILIAR", "MERCANTIL", "LABORAL"]}
 VECTOR = {"bsonType": "array", "minItems": 1024, "maxItems": 1024, "items": {"bsonType": "double"}}
 
 ESQUEMAS = {

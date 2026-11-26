@@ -27,7 +27,7 @@ class Narrativa(BaseModel):
 
 
 class Confirmacion(BaseModel):
-    materia: Literal["CIVIL", "FAMILIAR"]
+    materia: Literal["CIVIL", "FAMILIAR", "MERCANTIL", "LABORAL"]
 
 
 class CambioParte(BaseModel):

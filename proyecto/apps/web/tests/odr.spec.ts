@@ -66,7 +66,7 @@ test('dos partes negocian, firman y formalizan un convenio total', async ({ brow
     await a.getByLabel('En tus palabras, sin tecnicismos').fill('Le presté dinero a mi vecino y no me ha pagado nada en seis meses.');
     await a.getByRole('button', { name: 'Analizar mi caso' }).click();
     await a.getByLabel('¿Es correcta la materia?').selectOption('CIVIL');
-    await a.getByRole('button', { name: 'Confirmar orientación' }).click();
+    await a.getByRole('button', { name: 'Confirmar asesoría' }).click();
     await a.getByRole('button', { name: /^Invitar a / }).click();
     await a.getByRole('button', { name: 'Enviar invitación' }).click();
     await expect(a).toHaveURL(/\/ciudadano\/negociacion\//);

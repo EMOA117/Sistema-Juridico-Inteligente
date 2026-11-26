@@ -6,7 +6,8 @@ from compartido.ollama import chat_json
 from compartido.texto import sanear
 
 MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
-JUEZ = {"CIVIL": "C. JUEZ DE LO CIVIL DE PROCESO ORAL EN TURNO", "FAMILIAR": "C. JUEZ DE LO FAMILIAR EN TURNO"}
+JUEZ = {"CIVIL": "C. JUEZ DE LO CIVIL DE PROCESO ORAL EN TURNO", "FAMILIAR": "C. JUEZ DE LO FAMILIAR EN TURNO",
+         "MERCANTIL": "C. JUEZ DE PROCESO ORAL EN MATERIA MERCANTIL EN TURNO", "LABORAL": "C. JUEZ DEL TRIBUNAL LABORAL EN TURNO"}
 SISTEMA = """Redactas el cuerpo de un escrito inicial de demanda en México, en español formal y claro.
 Responde SOLO JSON: {"prestaciones": ["A) ...", "B) ..."], "hechos": ["1. ...", "2. ..."], "derecho": "párrafo breve con fundamentos genéricos, sin inventar números de artículos"}.
 Usa exclusivamente los hechos proporcionados; no inventes fechas, montos ni pruebas. Si falta un dato escribe [dato por confirmar].

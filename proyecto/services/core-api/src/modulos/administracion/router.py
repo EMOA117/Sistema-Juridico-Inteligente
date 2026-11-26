@@ -16,13 +16,13 @@ class Asignacion(BaseModel):
 
 class Juzgado(BaseModel):
     nombre: str = Field(min_length=3, max_length=120)
-    materia: Literal["CIVIL", "FAMILIAR"]
+    materia: Literal["CIVIL", "FAMILIAR", "MERCANTIL", "LABORAL"]
 
 
 class Adscripcion(BaseModel):
     juez_id: UUID
     juzgado_id: UUID
-    especialidad: Literal["CIVIL", "FAMILIAR"]
+    especialidad: Literal["CIVIL", "FAMILIAR", "MERCANTIL", "LABORAL"]
 
 
 @router.get("/turno")

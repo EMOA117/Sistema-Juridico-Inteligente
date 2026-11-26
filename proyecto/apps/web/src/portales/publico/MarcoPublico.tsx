@@ -8,7 +8,7 @@ export function MarcoPublico({ titulo, children }: { titulo: string; children: R
     <div className="pagina">
       <header className="encabezado">
         <Link to="/login" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none' }}>
-          <Logo /><span className="marca">Plataforma Jurídica Inteligente</span>
+          <Logo /><span className="marca">Sistema de Conciliación Inteligente</span>
         </Link>
       </header>
       <main className="contenedor" style={{ maxWidth: 640 }}>

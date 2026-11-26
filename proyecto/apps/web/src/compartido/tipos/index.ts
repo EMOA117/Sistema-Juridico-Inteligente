@@ -2,7 +2,8 @@
 // (services/core-api/src/modulos/estado/modelo.py e identidad/autorizacion.py).
 
 export type Rol = 'CIUDADANO' | 'MEDIADOR' | 'JUEZ' | 'ADMINISTRADOR';
-export type Materia = 'CIVIL' | 'FAMILIAR';
+export type Materia = 'CIVIL' | 'FAMILIAR' | 'MERCANTIL' | 'LABORAL';
+export const MATERIAS: Materia[] = ['CIVIL', 'FAMILIAR', 'MERCANTIL', 'LABORAL'];
 
 export type EstadoConflicto =
   | 'CAPTURA' | 'ORIENTADO' | 'EN_MEDIACION' | 'EN_ESPERA_DECISION' | 'CANALIZADO' | 'CONCLUIDO';

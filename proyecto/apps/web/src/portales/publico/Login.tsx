@@ -47,7 +47,7 @@ export default function Login() {
       <aside style={{ flex: '1 1 420px', background: 'var(--tinta)', color: 'var(--cal)', padding: '48px 56px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: 48, borderRight: '3px solid var(--laton)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <Logo />
-          <span className="marca" style={{ fontSize: 22 }}>Plataforma Jurídica Inteligente</span>
+          <span className="marca" style={{ fontSize: 22 }}>Sistema de Conciliación Inteligente</span>
         </div>
         <div className="columna" style={{ gap: 20, maxWidth: 520 }}>
           <h1 className="titulo-serif" style={{ fontSize: 'clamp(36px, 5vw, 56px)', lineHeight: 1.05 }}>
@@ -94,7 +94,7 @@ export default function Login() {
             <h2 id="h-inst" style={{ fontSize: 17 }}>Acceso institucional</h2>
             <span className="mono pequeno texto-2" style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}><IconoCandado />MFA OBLIGATORIO</span>
           </div>
-          <p className="pequeno texto-2">Jueces, mediadores y personal administrativo. Tu perfil se toma de tu cuenta institucional.</p>
+          <p className="pequeno texto-2">Jueces, mediadores y administradores. Tu perfil se toma de tu cuenta institucional.</p>
           <div className="fila">
             <div className="campo crece" style={{ minWidth: 200 }}>
               <label htmlFor="i-mail">Correo institucional</label>
@@ -107,6 +107,7 @@ export default function Login() {
             <div className="campo" style={{ width: 160 }}>
               <label htmlFor="i-mfa">Código MFA</label>
               <input id="i-mfa" name="mfa" inputMode="numeric" maxLength={7} className="mono" />
+              <span className="ayuda">6 dígitos de Google Authenticator.</span>
             </div>
           </div>
           <button type="submit" className="boton secundario bloque" disabled={enviando}>Verificar y entrar</button>

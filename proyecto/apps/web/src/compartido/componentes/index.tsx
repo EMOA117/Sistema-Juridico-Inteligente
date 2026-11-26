@@ -67,7 +67,7 @@ export const textoEstado: Record<string, string> = {
   RESUELTO: 'Resuelto', DESECHADO: 'Desechado', CERRADO: 'Cerrado',
   ACUERDO_TOTAL: 'Acuerdo total', ACUERDO_PARCIAL: 'Acuerdo parcial', NO_ACEPTADA: 'Invitación no aceptada',
   SIN_ACUERDO: 'Sin acuerdo', DESISTIMIENTO: 'Desistimiento', DIRECTA: 'Directa',
-  CIVIL: 'Civil', FAMILIAR: 'Familiar',
+  CIVIL: 'Civil', FAMILIAR: 'Familiar', MERCANTIL: 'Mercantil', LABORAL: 'Laboral',
 };
 export const t = (v: string | null | undefined) => (v ? textoEstado[v] ?? v : '—');
 

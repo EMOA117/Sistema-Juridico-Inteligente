@@ -51,6 +51,7 @@ export function VentanaFirma({ abierta, titulo, descripcion, pedirMfa, alCerrar,
             <label htmlFor="firma-mfa">Código MFA</label>
             <input id="firma-mfa" inputMode="numeric" autoComplete="one-time-code" maxLength={6} className="mono"
               value={codigo} onChange={(e) => setCodigo(e.target.value.replace(/\D/g, ''))} />
+            <span className="ayuda">Código de 6 dígitos que muestra Google Authenticator.</span>
           </div>
         )}
         <p className="pequeno texto-2">Firma de demostración con certificado de prueba y sello de tiempo local. No tiene validez legal.</p>

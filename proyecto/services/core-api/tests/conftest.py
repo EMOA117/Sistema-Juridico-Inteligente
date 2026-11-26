@@ -94,7 +94,7 @@ def crear_usuario(owner, app):
                           (cifrar(secreto, f"mfa:{uid}"), uid))
         if rol == "MEDIADOR":
             owner.execute("INSERT INTO schema_odr.mediador (usuario_id, num_certificacion, especialidades, max_casos)"
-                          " VALUES (%s,%s,%s,50)", (uid, f"QA-{uuid.uuid4().hex[:8]}", [especialidad] if especialidad else ["CIVIL", "FAMILIAR"]))
+                          " VALUES (%s,%s,%s,50)", (uid, f"QA-{uuid.uuid4().hex[:8]}", [especialidad] if especialidad else ["CIVIL", "FAMILIAR", "MERCANTIL", "LABORAL"]))
         if rol == "JUEZ":
             j = owner.execute("INSERT INTO schema_judicial.juzgado (nombre, materia) VALUES (%s,%s) RETURNING id",
                               (f"Juzgado QA {uuid.uuid4().hex[:6]}", especialidad or "CIVIL")).fetchone()["id"]
