@@ -41,7 +41,7 @@ def sugerir_turno(expediente_id: str, materia: str, candidatos: list[dict]) -> d
 
 
 def consultar_rag(datos: dict) -> dict | None:
-    return _llamar("/interno/rag/consultar", datos, timeout=90)
+    return _llamar("/interno/rag/consultar", datos, timeout=180)
 
 
 def ingerir(datos: dict) -> dict | None:

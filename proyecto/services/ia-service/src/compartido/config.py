@@ -11,6 +11,9 @@ class Config(BaseSettings):
     ollama_url: str = "http://localhost:11434"
     modelo_chat: str = "qwen2.5:7b"
     modelo_embeddings: str = "bge-m3"
+    chat_url: str = ""                       # opcional: servidor compatible con OpenAI para el chat (los embeddings siguen en Ollama)
+    chat_api_key: str = ""
+    chat_modelo: str = ""                    # nombre del modelo en ese servidor; vacío = modelo_chat
     mantener_cargado: str = "60m"            # evita recargar el modelo (la carga en frío tarda minutos)
     timeout_chat_s: float = 60.0
     contexto_tokens: int = 4096              # 8192 duplica la memoria (9 GB) y la latencia en equipos de 16 GB
