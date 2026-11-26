@@ -91,7 +91,7 @@ def registrar_firmeza(p: Principal, expediente_id: UUID, fecha: date) -> None:
         e = _expediente(c, p, expediente_id)
         if e["estado"] not in ("RESUELTO", "DESECHADO"):
             raise ReglaNegocio("Solo un expediente resuelto o desechado puede quedar firme")
-        firmada = c.execute("SELECT firmada_en::date AS f FROM schema_judicial.resolucion WHERE expediente_id=%s",
+        firmada = c.execute("SELECT (firmada_en AT TIME ZONE 'America/Mexico_City')::date AS f FROM schema_judicial.resolucion WHERE expediente_id=%s",
                             (expediente_id,)).fetchone()["f"]
         if fecha < firmada:
             raise ReglaNegocio("La firmeza no puede ser anterior a la firma de la resolución")

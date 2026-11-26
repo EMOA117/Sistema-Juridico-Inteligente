@@ -45,10 +45,10 @@ export function Campana({ alinear = 'derecha' }: { alinear?: 'derecha' | 'izquie
   }
 
   return (
-    <div ref={caja} style={{ position: 'relative' }}>
-      <button type="button" className="boton secundario" style={{ minHeight: 40 }} aria-expanded={abierta}
+    <div ref={caja} style={{ position: 'relative', flexShrink: 0 }}>
+      <button type="button" className="boton secundario" style={{ minHeight: 40, whiteSpace: 'nowrap', gap: 6, padding: '0 12px' }} aria-expanded={abierta}
         aria-label={`Notificaciones, ${datos.sin_leer} sin leer`} onClick={() => setAbierta((v) => !v)}>
-        <IconoCampana />{datos.sin_leer > 0 && <span className="mono">{datos.sin_leer}</span>}
+        <IconoCampana />{datos.sin_leer > 0 && <span className="mono">{datos.sin_leer > 99 ? '99+' : datos.sin_leer}</span>}
       </button>
       {abierta && (
         <div className="tarjeta" role="dialog" aria-label="Notificaciones"
