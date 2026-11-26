@@ -29,4 +29,6 @@ done
 
 echo "→ prueba de humo"
 psql -q -v ON_ERROR_STOP=1 -o /dev/null -f ../../tests/integracion/postgres_smoke.sql
+echo "→ datos de demostración"
+(cd ../../services/core-api/src && uv run --project .. python -m herramientas.semilla)
 echo "Base lista."

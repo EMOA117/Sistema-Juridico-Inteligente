@@ -32,6 +32,7 @@ class Config(BaseSettings):
     ia_url: str = "http://localhost:8001"
     ia_token: str = ""
     ia_timeout_s: float = 30.0
+    sembrar_demo: bool = False                    # solo entorno local: siembra datos sintéticos al arrancar si faltan
     pki_dir: str = str(Path(__file__).resolve().parents[4] / "infrastructure" / "local" / "pki")
 
     def dsn(self, login: str) -> str:
