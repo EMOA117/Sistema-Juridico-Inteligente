@@ -21,9 +21,11 @@ INFRA = RAIZ / "infrastructure" / "local"
 
 USUARIOS = [
     # correo, nombre, rol, cargo, curp
-    ("admin@demo.test", "Administración Demo", "ADMINISTRADOR", "Personal administrativo", None),
+    ("admin@demo.test", "Administración Demo", "ADMINISTRADOR", "Administrador", None),
     ("juez.civil@demo.test", "Mtro. Jorge Ramírez (sintético)", "JUEZ", "Juez 14.º Civil de Proceso Oral", None),
     ("juez.familiar@demo.test", "Mtra. Elena Cruz (sintética)", "JUEZ", "Jueza 3.º Familiar", None),
+    ("juez.mercantil@demo.test", "Mtro. Andrés Lara (sintético)", "JUEZ", "Juez 5.º de Proceso Oral Mercantil", None),
+    ("juez.laboral@demo.test", "Mtra. Sofía Núñez (sintética)", "JUEZ", "Jueza 2.º del Tribunal Laboral", None),
     ("mediadora@demo.test", "Lic. Mariana Soto (sintética)", "MEDIADOR", "Mediadora certificada · Cert. 0482", None),
     ("mediador@demo.test", "Lic. Tomás Vega (sintético)", "MEDIADOR", "Mediador certificado · Cert. 0517", None),
     ("ana@demo.test", "Ana Pérez López", "CIUDADANO", None, "PELA900101MDFRPN09"),
@@ -67,11 +69,14 @@ def main() -> None:
 
         civil = c.execute("INSERT INTO schema_judicial.juzgado (nombre, materia) VALUES ('Juzgado 14.º Civil de Proceso Oral (sintético)','CIVIL') RETURNING id").fetchone()["id"]
         familiar = c.execute("INSERT INTO schema_judicial.juzgado (nombre, materia) VALUES ('Juzgado 3.º Familiar (sintético)','FAMILIAR') RETURNING id").fetchone()["id"]
-        c.execute("INSERT INTO schema_judicial.juez_adscripcion VALUES (%s,%s,'CIVIL'), (%s,%s,'FAMILIAR')",
-                  (ids["juez.civil@demo.test"], civil, ids["juez.familiar@demo.test"], familiar))
+        mercantil = c.execute("INSERT INTO schema_judicial.juzgado (nombre, materia) VALUES ('Juzgado 5.º de Proceso Oral Mercantil (sintético)','MERCANTIL') RETURNING id").fetchone()["id"]
+        laboral = c.execute("INSERT INTO schema_judicial.juzgado (nombre, materia) VALUES ('Tribunal Laboral 2.º (sintético)','LABORAL') RETURNING id").fetchone()["id"]
+        c.execute("INSERT INTO schema_judicial.juez_adscripcion VALUES (%s,%s,'CIVIL'), (%s,%s,'FAMILIAR'), (%s,%s,'MERCANTIL'), (%s,%s,'LABORAL')",
+                  (ids["juez.civil@demo.test"], civil, ids["juez.familiar@demo.test"], familiar,
+                   ids["juez.mercantil@demo.test"], mercantil, ids["juez.laboral@demo.test"], laboral))
 
         c.execute("INSERT INTO schema_odr.mediador (usuario_id, num_certificacion, especialidades) VALUES"
-                  " (%s,'CJA-0482',ARRAY['CIVIL','FAMILIAR']), (%s,'CJA-0517',ARRAY['FAMILIAR'])",
+                  " (%s,'CJA-0482',ARRAY['CIVIL','FAMILIAR','MERCANTIL','LABORAL']), (%s,'CJA-0517',ARRAY['FAMILIAR'])",
                   (ids["mediadora@demo.test"], ids["mediador@demo.test"]))
 
         ana, carlos, lucia = ids["ana@demo.test"], ids["carlos@demo.test"], ids["lucia@demo.test"]

@@ -44,7 +44,7 @@ class Clasificar(BaseModel):
 
 
 class Recomendar(BaseModel):
-    materia: Literal["CIVIL", "FAMILIAR"]
+    materia: Literal["CIVIL", "FAMILIAR", "MERCANTIL", "LABORAL"]
     narrativa: str = Field(max_length=4000)
     propuestas: list[str] = Field(default_factory=list, max_length=30)
     nombres: list[str] = Field(default_factory=list, max_length=10)
@@ -57,7 +57,7 @@ class Parte(BaseModel):
 
 
 class Demanda(BaseModel):
-    materia: Literal["CIVIL", "FAMILIAR"]
+    materia: Literal["CIVIL", "FAMILIAR", "MERCANTIL", "LABORAL"]
     origen: str
     narrativa: str = Field(max_length=4000)
     puntos_pendientes: list[str] = Field(default_factory=list)
@@ -70,19 +70,19 @@ class Demanda(BaseModel):
 class Candidato(BaseModel):
     juzgado_id: str
     juez_id: str
-    especialidad: Literal["CIVIL", "FAMILIAR"]
+    especialidad: Literal["CIVIL", "FAMILIAR", "MERCANTIL", "LABORAL"]
     expedientes_activos: int = Field(ge=0)
 
 
 class Turno(BaseModel):
     expediente_id: str
-    materia: Literal["CIVIL", "FAMILIAR"]
+    materia: Literal["CIVIL", "FAMILIAR", "MERCANTIL", "LABORAL"]
     candidatos: list[Candidato]
 
 
 class Consulta(BaseModel):
     expediente_id: str
-    materia: Literal["CIVIL", "FAMILIAR"]
+    materia: Literal["CIVIL", "FAMILIAR", "MERCANTIL", "LABORAL"]
     juez_id: str
     pregunta: str = Field(min_length=5, max_length=500)
     incluir_expediente: bool = True
@@ -97,7 +97,7 @@ class Pagina(BaseModel):
 class Ingesta(BaseModel):
     documento: str
     acceso: Literal["PUBLICO", "EXPEDIENTE"]
-    materia: Literal["CIVIL", "FAMILIAR"]
+    materia: Literal["CIVIL", "FAMILIAR", "MERCANTIL", "LABORAL"]
     expediente_id: str | None = None
     documento_id: str | None = None
     nombres: list[str] = Field(default_factory=list)

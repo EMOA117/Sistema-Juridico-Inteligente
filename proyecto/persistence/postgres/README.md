@@ -1,6 +1,6 @@
 # Migraciones PostgreSQL del MVP
 
-Orden de aplicación con `psql -v ON_ERROR_STOP=1`: `001_base.sql` a `011_integridad_odr.sql`. Ejecutarlas en una **base vacía** como propietario con permiso de crear roles; `infrastructure/local/init-db.sh` las aplica en orden y crea un login por rol. Se validan con PostgreSQL 16.
+Orden de aplicación con `psql -v ON_ERROR_STOP=1`: `001_base.sql` a `012_materias.sql`. Ejecutarlas en una **base vacía** como propietario con permiso de crear roles; `infrastructure/local/init-db.sh` las aplica en orden y crea un login por rol. Se validan con PostgreSQL 16.
 
 La prueba de humo es [`../../tests/integracion/postgres_smoke.sql`](../../tests/integracion/postgres_smoke.sql); abre una transacción y termina con `ROLLBACK`. Las pruebas de `services/core-api/tests/` prueban la API y sus barreras contra el PostgreSQL del compose. Consulta la [guía ODR](../../docs/odr.md).
 

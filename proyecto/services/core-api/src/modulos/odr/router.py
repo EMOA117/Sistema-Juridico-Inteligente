@@ -109,7 +109,7 @@ class Convenio(BaseModel):
 
 class Mediador(BaseModel):
     num_certificacion: str = Field(min_length=3, max_length=40)
-    especialidades: list[Literal["CIVIL", "FAMILIAR"]] = Field(min_length=1)
+    especialidades: list[Literal["CIVIL", "FAMILIAR", "MERCANTIL", "LABORAL"]] = Field(min_length=1)
     max_casos: int = Field(default=10, ge=1, le=50)
     activo: bool = True
 

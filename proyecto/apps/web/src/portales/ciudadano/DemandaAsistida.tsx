@@ -6,7 +6,8 @@ import { EncabezadoCiudadano } from '@/compartido/componentes/Layouts';
 import { conflictos, judicial } from '@/compartido/servicios';
 import { intentar, useDatos } from '@/compartido/servicios/useDatos';
 
-const tiposJuicio = { CIVIL: ['Juicio oral civil', 'Juicio ordinario civil'], FAMILIAR: ['Controversia del orden familiar', 'Juicio oral familiar'] };
+const tiposJuicio = { CIVIL: ['Juicio oral civil', 'Juicio ordinario civil'], FAMILIAR: ['Controversia del orden familiar', 'Juicio oral familiar'],
+  MERCANTIL: ['Juicio oral mercantil', 'Juicio ejecutivo mercantil'], LABORAL: ['Procedimiento ordinario laboral', 'Procedimiento especial laboral'] };
 
 export default function DemandaAsistida() {
   const { conflictoId = '' } = useParams();
@@ -60,7 +61,7 @@ export default function DemandaAsistida() {
     await guardarDomicilio();
     await intentar(async () => {
       const r = await judicial.confirmar(d.id, texto);
-      alert(`Demanda presentada. Expediente ${r.numero}.`);
+      alert(`Tu demanda fue prevenida. Expediente ${r.numero}.`);
       navegar('/ciudadano');
     }, setError);
   }
@@ -98,7 +99,7 @@ export default function DemandaAsistida() {
               {!domicilio && !d.partes.demandado.correo && <span className="error">Falta un dato de contacto del demandado</span>}
             </div>
             <div className="campo">
-              <span className="rotulo">Hechos <span className="pequeno texto-2">· desde tu orientación</span></span>
+              <span className="rotulo">Hechos <span className="pequeno texto-2">· desde tu asesoría</span></span>
               <p className="aviso-confidencial">{d.narrativa_inicial}</p>
             </div>
             {d.puntos_pendientes.length > 0 && (
@@ -127,7 +128,7 @@ export default function DemandaAsistida() {
           </section>
 
           <section aria-labelledby="h-doc" className="columna" style={{ flex: '2 1 560px', minWidth: 0 }}>
-            <CajaIA titulo={sello || (presentada ? 'Demanda presentada' : 'Borrador · editable')}>
+            <CajaIA titulo={sello || (presentada ? 'Demanda prevenida' : 'Borrador · editable')}>
               <label htmlFor="borrador" id="h-doc" className="solo-lector">Texto de la demanda</label>
               <textarea id="borrador" value={texto} readOnly={presentada} onChange={(e) => { setTexto(e.target.value); setRevisado(false); }} rows={22}
                 placeholder="Indica lo que pides al juez y genera el borrador."

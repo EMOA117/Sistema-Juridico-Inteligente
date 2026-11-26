@@ -3,7 +3,8 @@ from datetime import date
 
 _MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
           "noviembre", "diciembre"]
-_JUEZ = {"CIVIL": "C. JUEZ DE LO CIVIL DE PROCESO ORAL EN TURNO", "FAMILIAR": "C. JUEZ DE LO FAMILIAR EN TURNO"}
+_JUEZ = {"CIVIL": "C. JUEZ DE LO CIVIL DE PROCESO ORAL EN TURNO", "FAMILIAR": "C. JUEZ DE LO FAMILIAR EN TURNO",
+         "MERCANTIL": "C. JUEZ DE PROCESO ORAL EN MATERIA MERCANTIL EN TURNO", "LABORAL": "C. JUEZ DEL TRIBUNAL LABORAL EN TURNO"}
 
 
 def redactar(d: dict) -> str:

@@ -26,12 +26,12 @@ export function EncabezadoCiudadano({ titulo, etiqueta, volverA, derecha }: {
     <header className="encabezado">
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
         {volverA ? <Link to={volverA} aria-label="Volver">←</Link> : <Logo />}
-        <span className="marca">{titulo ?? 'Plataforma Jurídica Inteligente'}</span>
+        <span className="marca">{titulo ?? 'Sistema de Conciliación Inteligente'}</span>
         {etiqueta && <span className="etiqueta-portal">{etiqueta}</span>}
         {!titulo && (
           <nav aria-label="Principal">
             <NavLink to="/ciudadano" end className={({ isActive }) => (isActive ? 'activo' : '')}>Mis asuntos</NavLink>
-            <NavLink to="/ciudadano/orientacion" className={({ isActive }) => (isActive ? 'activo' : '')}>Nueva orientación</NavLink>
+            <NavLink to="/ciudadano/orientacion" className={({ isActive }) => (isActive ? 'activo' : '')}>Nueva asesoría</NavLink>
           </nav>
         )}
       </div>

@@ -15,7 +15,7 @@ def clasificador(narrativa: str) -> dict:
     """RF2.2–RF2.3: ia-service (PLN) con respaldo en reglas si no responde a tiempo."""
     from modulos import ia_cliente
     r = ia_cliente.clasificar(narrativa)
-    if r and r.get("materia") in ("CIVIL", "FAMILIAR"):
+    if r and r.get("materia") in ("CIVIL", "FAMILIAR", "MERCANTIL", "LABORAL"):
         return {**r, "modelo": "qwen2.5:7b"}
     return reglas.clasificar(narrativa)
 

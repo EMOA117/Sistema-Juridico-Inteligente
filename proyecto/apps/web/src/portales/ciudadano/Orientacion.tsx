@@ -6,9 +6,9 @@ import { EncabezadoCiudadano } from '@/compartido/componentes/Layouts';
 import { conflictos } from '@/compartido/servicios';
 import { useSesion } from '@/compartido/servicios/sesion';
 import { intentar } from '@/compartido/servicios/useDatos';
-import type { Materia, Orientacion as TOrientacion } from '@/compartido/tipos';
+import { MATERIAS, type Materia, type Orientacion as TOrientacion } from '@/compartido/tipos';
 
-const pasos = ['Las partes', 'Tu caso', 'Orientación'];
+const pasos = ['Las partes', 'Tu caso', 'Asesoría'];
 
 export default function Orientacion() {
   const { usuario } = useSesion();
@@ -81,7 +81,7 @@ export default function Orientacion() {
 
   return (
     <div className="pagina">
-      <EncabezadoCiudadano titulo="Asistente de orientación" etiqueta="PORTAL CIUDADANO" volverA="/ciudadano" />
+      <EncabezadoCiudadano titulo="Asesoría inteligente" etiqueta="PORTAL CIUDADANO" volverA="/ciudadano" />
       <div className="contenedor">
         <ol aria-label="Pasos del asistente" style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', gap: 24, flexWrap: 'wrap' }}>
           {pasos.map((p, i) => (
@@ -138,7 +138,7 @@ export default function Orientacion() {
 
         {paso === 2 && resultado && (
           <>
-            <CajaIA titulo={resultado.origen === 'IA' ? `Orientación asistida por IA · ${resultado.modelo ?? ''}` : 'Orientación automática · reglas de respaldo'}>
+            <CajaIA titulo={resultado.origen === 'IA' ? `Asesoría inteligente asistida por IA · ${resultado.modelo ?? ''}` : 'Asesoría automática · reglas de respaldo'}>
               <h1 className="titulo-serif" style={{ fontSize: 30 }}>
                 Tu caso parece un asunto <strong>{t(resultado.materia).toLowerCase()}</strong>
                 {resultado.mediable ? ', y es de los que suelen resolverse con un acuerdo.' : '.'}
@@ -153,10 +153,10 @@ export default function Orientacion() {
                   <div className="campo" style={{ minWidth: 220 }}>
                     <label htmlFor="materia">¿Es correcta la materia?</label>
                     <select id="materia" value={materia} onChange={(e) => setMateria(e.target.value as Materia)}>
-                      <option value="CIVIL">Civil</option><option value="FAMILIAR">Familiar</option>
+                      {MATERIAS.map((m) => <option key={m} value={m}>{t(m)}</option>)}
                     </select>
                   </div>
-                  <button type="button" className="boton" onClick={confirmar}>Confirmar orientación</button>
+                  <button type="button" className="boton" onClick={confirmar}>Confirmar asesoría</button>
                 </div>
               )}
             </CajaIA>
@@ -181,7 +181,7 @@ export default function Orientacion() {
                 </div>
               </section>
             )}
-            <p className="pequeno texto-2">Esta orientación es informativa y no sustituye la asesoría de un abogado. Ninguna decisión jurídica se toma de forma automática.</p>
+            <p className="pequeno texto-2">Esta asesoría inteligente es informativa y no sustituye la de un abogado. Ninguna decisión jurídica se toma de forma automática.</p>
           </>
         )}
       </div>

@@ -4,7 +4,7 @@ import { Cargando, Estado, MensajeError, t } from '@/compartido/componentes';
 import { identidad } from '@/compartido/servicios';
 import { intentar, useDatos } from '@/compartido/servicios/useDatos';
 
-const roles = { JUEZ: 'Juez', MEDIADOR: 'Mediador', ADMINISTRADOR: 'Administrativo' } as const;
+const roles = { JUEZ: 'Juez', MEDIADOR: 'Mediador', ADMINISTRADOR: 'Administrador' } as const;
 
 export default function Usuarios() {
   const { datos, error: errorCarga, recargar } = useDatos(() => identidad.personal());

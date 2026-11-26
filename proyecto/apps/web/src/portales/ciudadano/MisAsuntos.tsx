@@ -8,7 +8,7 @@ import { useSesion } from '@/compartido/servicios/sesion';
 import { useDatos } from '@/compartido/servicios/useDatos';
 import type { Conflicto, ExpedienteResumen, MediacionResumen } from '@/compartido/tipos';
 
-const etapas = ['Orientación', 'Mediación', 'Decisión', 'Vía judicial', 'Concluido'];
+const etapas = ['Asesoría', 'Mediación', 'Decisión', 'Vía judicial', 'Concluido'];
 const etapaDe: Record<string, number> = {
   CAPTURA: 0, ORIENTADO: 0, EN_MEDIACION: 1, EN_ESPERA_DECISION: 2, CANALIZADO: 3, CONCLUIDO: 4,
 };
@@ -93,7 +93,7 @@ function TarjetaAsunto({ c, mediacion, expediente }: { c: Conflicto; mediacion?:
       )}
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         {c.soy_solicitante && ['CAPTURA', 'ORIENTADO'].includes(c.estado) &&
-          <Link className="boton" to={`/ciudadano/orientacion?conflicto=${c.id}`}>Continuar orientación</Link>}
+          <Link className="boton" to={`/ciudadano/orientacion?conflicto=${c.id}`}>Continuar asesoría</Link>}
         {mediacion && ['INVITACION_ENVIADA', 'EN_NEGOCIACION', 'CON_MEDIADOR', 'PENDIENTE_FORMALIZACION'].includes(mediacion.estado) &&
           <Link className="boton jade" to={`/ciudadano/negociacion/${mediacion.id}`}>Ir a la sala</Link>}
         {c.soy_solicitante && c.estado === 'EN_ESPERA_DECISION' &&

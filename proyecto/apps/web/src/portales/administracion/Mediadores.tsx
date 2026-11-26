@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Cargando, Estado, MensajeError, t } from '@/compartido/componentes';
 import { administracion } from '@/compartido/servicios';
 import { intentar, useDatos } from '@/compartido/servicios/useDatos';
-import type { Materia, MediadorPadron } from '@/compartido/tipos';
+import { MATERIAS, type Materia, type MediadorPadron } from '@/compartido/tipos';
 
 type Ficha = { num_certificacion: string; especialidades: Materia[]; max_casos: number; activo: boolean };
 
@@ -53,7 +53,7 @@ export default function Mediadores() {
                   <td><label className="solo-lector" htmlFor={`cert-${id}`}>Certificación</label>
                     <input id={`cert-${id}`} className="mono" value={f.num_certificacion} onChange={(e) => cambiar(id, f, { num_certificacion: e.target.value })}
                       style={{ minHeight: 40, width: 130, padding: '0 8px', border: '1.5px solid var(--borde-campo)', borderRadius: 4 }} /></td>
-                  <td>{(['CIVIL', 'FAMILIAR'] as const).map((e) => (
+                  <td>{MATERIAS.map((e) => (
                     <label key={e} style={{ marginRight: 10, display: 'inline-flex', gap: 4, alignItems: 'center' }}>
                       <input type="checkbox" checked={f.especialidades.includes(e)}
                         onChange={(ev) => cambiar(id, f, { especialidades: ev.target.checked ? [...f.especialidades, e] : f.especialidades.filter((x) => x !== e) })} />{t(e)}
